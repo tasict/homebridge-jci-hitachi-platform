@@ -88,6 +88,16 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
 
   protected notifyCallback (thing: AWSThings|undefined){
 
+    if(this.jciHitachiAWSAPI.isConnected == false){
+      
+      this._loginRetryTimeout = setTimeout(
+        this.loginAndDiscoverDevices.bind(this),
+        LOGIN_RETRY_DELAY,
+      );
+
+      return;
+    }
+
     if(thing === undefined) return;
     
     this.log.debug(`NotifyCallback: ${JSON.stringify(thing)}`);  

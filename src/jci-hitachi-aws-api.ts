@@ -638,6 +638,8 @@ export default class JciHitachiAWSAPI {
             
             }
 
+            this.isConnected = false;
+
             return true;
         }catch(e){
             this.log.error(`Logout Error: ${e}`);
@@ -858,6 +860,12 @@ export default class JciHitachiAWSAPI {
 
         }catch(e){
             this.log.error(`Publish Error: ${e}`);
+            this.Logout();
+
+            if(this.callback){
+                this.callback(undefined);
+            }
+
         }
 
         return false;
