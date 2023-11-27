@@ -826,6 +826,9 @@ export default class JciHitachiAWSAPI {
 
             this.isConnected = false;
 
+            throw new Error("disconnection" + eventData.error.toString());
+
+
         });
 
         client.on('stopped', (eventData: mqtt5.StoppedEvent) => {
