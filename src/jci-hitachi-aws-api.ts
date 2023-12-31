@@ -24,6 +24,16 @@ export interface NotifyCallback {
     (thingName: AWSThings|undefined): void;
 }
 
+function generateRandomHex(length: number): string {
+    const characters = 'abcdef0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+    }
+    return result;
+  }
+
 class AWSTokens {
     access_token: string
     id_token: string
@@ -39,13 +49,16 @@ class AWSTokens {
 }
 class AWSIdentity {
     identity_id: string
+    host_identity_id: string
     user_name: string
     user_attributes: {[key: string]: string}
 
     constructor(identity_id: string, user_name: string, user_attributes: {[key: string]: string}) {
         this.identity_id = identity_id;
+        this.host_identity_id = user_attributes["custom:host_identity_id"],
         this.user_name = user_name;
         this.user_attributes = user_attributes;
+        
     }
 }
 
@@ -372,7 +385,8 @@ class GetUser extends JciHitachiAWSCognitoConnection {
                 return acc;
             }, {});
 
-            return new AWSIdentity(user_attributes['custom:cognito_identity_id'],user_attributes['Username'], user_attributes['']);
+
+            return new AWSIdentity(user_attributes['custom:cognito_identity_id'],user_attributes['Username'], user_attributes);
         }
     
     }
@@ -527,7 +541,6 @@ export default class JciHitachiAWSAPI {
     aws_tokens: AWSTokens|undefined;
     aws_credentials: AWSCredentials|undefined;
     aws_identity: AWSIdentity|undefined;
-    host_user_id: string|undefined;
     aws_thing_dict: AWSThingDictionary|undefined;
     task_id:number = 0;
     is_host:boolean = false;
@@ -563,18 +576,22 @@ export default class JciHitachiAWSAPI {
 
             this.aws_identity = await (new GetUser(this.email, this.password, this.aws_tokens, this.log)).get_data();
             this.aws_thing_dict = await (new GetAllDevice(this.aws_tokens, this.log)).get_data();
+
+            this.log.debug(JSON.stringify(this.aws_identity));
             
             
             if(this.aws_identity){
 
                 this.aws_credentials = await (new GetCredentials(this.email, this.password, this.aws_tokens, this.log)).get_data(this.aws_identity);
-                this.host_user_id = await (new ListSubUser(this.aws_tokens, this.log)).getHostUserID();
 
-                this.log.debug(JSON.stringify(this.aws_identity) + ` host_user_id: ${this.host_user_id}`);
+                this.log.debug(JSON.stringify(this.aws_identity) + ` host_user_id: ${this.aws_identity.host_identity_id}`);
 
-                this.is_host = this.aws_identity.identity_id === this.host_user_id;
+                this.is_host = this.aws_identity.identity_id === this.aws_identity.host_identity_id;
         
-                if(this.aws_credentials && this.host_user_id.length > 0){
+                if(this.aws_credentials && this.aws_identity.host_identity_id.length > 0){
+
+                    this.log.debug(JSON.stringify(this));
+
                     this.mqttclient = this.createMQTTClient();
                 }
                 
@@ -590,7 +607,7 @@ export default class JciHitachiAWSAPI {
                 
                     const suback = await this.mqttclient.subscribe({
                         subscriptions: [
-                            { qos: QOS, topicFilter: `${this.host_user_id}/#` }
+                            { qos: QOS, topicFilter: `${this.aws_identity.host_identity_id}/+/+/response` }
                         ]
                     });
     
@@ -623,7 +640,7 @@ export default class JciHitachiAWSAPI {
 
                 const unsuback = await this.mqttclient.unsubscribe({
                     topicFilters: [
-                        `${this.host_user_id}/#`
+                        `${this.aws_identity?.host_identity_id}/#`
                     ]
                 });
                 this.log.debug('Unsuback result: ' + JSON.stringify(unsuback));
@@ -772,9 +789,10 @@ export default class JciHitachiAWSAPI {
 
     protected createMQTTClient(): mqtt5.Mqtt5Client {
 
-        if(this.aws_credentials === undefined){
+        if(this.aws_credentials === undefined || this.aws_identity === undefined){
             throw new Error('aws_credentials is undefined');
         }
+        
 
         const wsConfig : iot.WebsocketSigv4Config = {
             credentialsProvider: auth.AwsCredentialsProvider.newStatic(this.aws_credentials.access_key_id, this.aws_credentials.secret_access_key, this.aws_credentials.session_token),
@@ -785,6 +803,11 @@ export default class JciHitachiAWSAPI {
             AWS_MQTT_ENDPOINT,
             wsConfig
         )
+
+        const clientId = `${this.aws_identity.identity_id}_${generateRandomHex(16)}`;
+        this.log.debug(`clientId: ${clientId}`);
+
+        builder.withConnectProperties({ keepAliveIntervalSeconds: 120, clientId: `${clientId}` });
 
         const client : mqtt5.Mqtt5Client = new mqtt5.Mqtt5Client(builder.build());
 
@@ -812,9 +835,9 @@ export default class JciHitachiAWSAPI {
         });
 
         client.on('connectionFailure', (eventData: mqtt5.ConnectionFailureEvent) => {
-            this.log.debug("Connection failure event: " + eventData.error.toString());
+            this.log.error("Connection failure event: " + eventData.error.toString());
             this.isConnected = false;
-            throw new Error("Connection failure event: " + eventData.error.toString());
+            //throw new Error("Connection failure event: " + eventData.error.toString());
 
         });
 
@@ -848,7 +871,7 @@ export default class JciHitachiAWSAPI {
 
             if(this.mqttclient && this.isConnected){
 
-                const topic = `${this.host_user_id}/${thingName}`;
+                const topic = `${this.aws_identity?.host_identity_id}/${thingName}`;
     
                 const qosPublishRegistrationResult = await this.mqttclient.publish({
                     qos: QOS,
