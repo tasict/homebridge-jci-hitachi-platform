@@ -839,6 +839,10 @@ export default class JciHitachiAWSAPI {
             this.isConnected = false;
             //throw new Error("Connection failure event: " + eventData.error.toString());
 
+            if(this.callback){
+                this.callback(undefined);
+            }
+
         });
 
         client.on('disconnection', (eventData: mqtt5.DisconnectionEvent) => {
