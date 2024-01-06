@@ -468,7 +468,7 @@ export default class ClimateAccessory extends JciHitachiAccessory{
 
   public async updateStatus() {
     
-    this.platform.log.info(`Updating status for device '${this.accessory.displayName}'`);
+    this.platform.log.debug(`Updating status for device '${this.accessory.displayName}'`);
     
     let temperatureSetting:number = this.accessory.context.device.TemperatureSetting || 0;      
     
