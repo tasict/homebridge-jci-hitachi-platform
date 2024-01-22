@@ -312,6 +312,7 @@ class JciHitachiAWSCognitoConnection extends JciHitachiAWSHttpConnection {
     }
 
     public async login(use_refresh_token: boolean): Promise<AWSTokens|undefined> {
+        
 
         let login_json_data: any;
         const login_headers = this._generateHeaders("AWSCognitoIdentityProviderService.InitiateAuth");
@@ -566,6 +567,10 @@ export default class JciHitachiAWSAPI {
     public async Login(): Promise<boolean> {
 
         try{
+
+            if(this.isConnected){
+                return true;
+            }
 
             this.aws_tokens = await (new JciHitachiAWSCognitoConnection(this.email, this.password, undefined, this.log)).login(false);
 
