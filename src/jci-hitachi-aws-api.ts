@@ -568,6 +568,8 @@ export default class JciHitachiAWSAPI {
 
         try{
 
+            this.Logout();
+
             if(this.isConnected){
                 return true;
             }
@@ -657,6 +659,8 @@ export default class JciHitachiAWSAPI {
     
                 await disconnection;
                 await stopped;
+
+                this.mqttclient = undefined;
             
             }
 
