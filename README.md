@@ -1,6 +1,5 @@
 # Homebridge Jci Hitachi Platform
 
-[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![GitHub version](https://img.shields.io/github/package-json/v/tasict/homebridge-jci-hitachi-platform?label=GitHub)](https://github.com/tasict/homebridge-jci-hitachi-platform)
 [![npm version](https://img.shields.io/npm/v/homebridge-jci-hitachi-platform?color=%23cb3837&label=npm)](https://www.npmjs.com/package/homebridge-jci-hitachi-platform)
 

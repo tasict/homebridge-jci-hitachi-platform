@@ -353,7 +353,9 @@ class JciHitachiAWSCognitoConnection extends JciHitachiAWSHttpConnection {
                     use_refresh_token && this.aws_tokens ? this.aws_tokens.refresh_token : auth_result['RefreshToken'],
                     new Date().valueOf() + auth_result['ExpiresIn']
             );
-        
+        }
+        else{
+            this.log.error(`login_req: ${JSON.stringify(response.data)}`);
         }
 
         return this.aws_tokens;
@@ -577,6 +579,7 @@ export default class JciHitachiAWSAPI {
             this.aws_tokens = await (new JciHitachiAWSCognitoConnection(this.email, this.password, undefined, this.log)).login(false);
 
             if(!this.aws_tokens){
+                this.log.info('Login failed');
                 return false;
             }
 

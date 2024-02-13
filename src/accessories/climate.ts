@@ -467,8 +467,14 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   }
 
   public async updateStatus() {
-    
-    this.platform.log.debug(`Updating status for device '${this.accessory.displayName}'`);
+
+    if(this.platform.jciHitachiAWSAPI.isConnected == false){
+      
+      this.platform.log.error('AWS IoT is not connected');
+      this.platform.jciHitachiAWSAPI.Login();
+      
+      return;
+    }
     
     let temperatureSetting:number = this.accessory.context.device.TemperatureSetting || 0;      
     
