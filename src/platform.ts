@@ -3,7 +3,6 @@ import {
   APIEvent,
   Characteristic,
   DynamicPlatformPlugin,
-  HDSProtocolSpecificErrorReason,
   Logger,
   PlatformAccessory,
   PlatformConfig,
@@ -40,7 +39,7 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
   private _loginRetryTimeout: NodeJS.Timer | undefined;
   private noOfFailedLoginAttempts = 0;
 
-  public readonly jciHitachiAWSAPI: JciHitachiAWSAPI;
+  public jciHitachiAWSAPI: JciHitachiAWSAPI;
   public readonly log: JciHitachiPlatformLogger;
 
   public platformConfig: JciHitachiPlatformConfig;
@@ -65,13 +64,12 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
     // Initialise logging utility
     this.log = new JciHitachiPlatformLogger(homebridgeLogger, this.platformConfig.debugMode);
 
-    // Create JciHitachiAWSAPI communication module
     this.jciHitachiAWSAPI = new JciHitachiAWSAPI(
       this.platformConfig.email,
       this.platformConfig.password,
       this.log
     );
-
+    
     this.jciHitachiAWSAPI.setCallback(this.notifyCallback.bind(this));
 
     /**
@@ -132,6 +130,21 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
         + 'Please set the field `password` in your config and restart Homebridge.');
       return;
     }
+
+    if(this.jciHitachiAWSAPI === undefined || this.jciHitachiAWSAPI.isLoginFailed == true){
+
+        this.log.info('Creating New JciHitachiAWSAPI.');
+
+        // Create JciHitachiAWSAPI communication module
+        this.jciHitachiAWSAPI = new JciHitachiAWSAPI(
+          this.platformConfig.email,
+          this.platformConfig.password,
+          this.log
+        );
+        
+        this.jciHitachiAWSAPI.setCallback(this.notifyCallback.bind(this));
+    }
+
 
     this.log.info('Attempting to log into JciHitachiAWSAPI.');
     this.jciHitachiAWSAPI.Login()

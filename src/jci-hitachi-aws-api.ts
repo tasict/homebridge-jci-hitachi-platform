@@ -547,10 +547,12 @@ export default class JciHitachiAWSAPI {
     aws_thing_dict: AWSThingDictionary|undefined;
     task_id:number = 0;
     is_host:boolean = false;
+    last_received_time: number = 0;
 
     callback:NotifyCallback|undefined;
     
     isConnected: boolean = false;
+    isLoginFailed: boolean = false;
 
     constructor(email: string, password: string, log: JciHitachiPlatformLogger) {
         this.email = email;
@@ -570,7 +572,7 @@ export default class JciHitachiAWSAPI {
 
         try{
 
-            this.Logout();
+            await this.Logout();
 
             if(this.isConnected){
                 return true;
@@ -587,7 +589,7 @@ export default class JciHitachiAWSAPI {
             this.aws_identity = await (new GetUser(this.email, this.password, this.aws_tokens, this.log)).get_data();
             this.aws_thing_dict = await (new GetAllDevice(this.aws_tokens, this.log)).get_data();
 
-            this.log.debug(JSON.stringify(this.aws_identity));
+            this.log.debug("aws_identity:" + JSON.stringify(this.aws_identity));
             
             
             if(this.aws_identity){
@@ -707,6 +709,19 @@ export default class JciHitachiAWSAPI {
 
     public async RefeshDevice(thingName:string): Promise<boolean> {
 
+        if(this.last_received_time != 0 && Math.ceil(Date.now() / 1000) - this.last_received_time > 600){
+            
+            this.log.error('MQTT Connection Timeout');
+                                    
+            await this.Logout();
+            
+            this.log.info('Re-Login');
+            await this.Login();
+            
+            
+            return false;
+        }
+
         if(this.aws_thing_dict?.hasThingName(thingName)){
             return await this.publish(thingName, 'status');
         }
@@ -771,7 +786,10 @@ export default class JciHitachiAWSAPI {
 
             if(this.aws_thing_dict === undefined){
                 return;     
-            }    
+            }
+
+            this.last_received_time = Math.ceil(Date.now() / 1000);
+                
     
     
             if(this.getDevice(thingName)){
@@ -826,6 +844,8 @@ export default class JciHitachiAWSAPI {
         client.on('error', (error) => {
             this.log.error("Error event: " + error.toString());
             this.isConnected = false;
+            this.isLoginFailed = true;
+
         });
 
         client.on("messageReceived",(eventData: mqtt5.MessageReceivedEvent) : void => {
@@ -847,8 +867,10 @@ export default class JciHitachiAWSAPI {
         });
 
         client.on('connectionFailure', (eventData: mqtt5.ConnectionFailureEvent) => {
+
             this.log.error("Connection failure event: " + eventData.error.toString());
             this.isConnected = false;
+            this.isLoginFailed = true;
             //throw new Error("Connection failure event: " + eventData.error.toString());
 
             if(this.callback){
@@ -858,6 +880,7 @@ export default class JciHitachiAWSAPI {
         });
 
         client.on('disconnection', (eventData: mqtt5.DisconnectionEvent) => {
+
             this.log.debug("Disconnection event: " + eventData.error.toString());
             if (eventData.disconnect !== undefined) {
                 this.log.debug('Disconnect packet: ' + JSON.stringify(eventData.disconnect));
