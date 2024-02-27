@@ -648,6 +648,8 @@ export default class JciHitachiAWSAPI {
 
         try{
 
+            this.isConnected = false;
+
             if(this.mqttclient){
 
                 const unsuback = await this.mqttclient.unsubscribe({
@@ -669,10 +671,9 @@ export default class JciHitachiAWSAPI {
             
             }
 
-            this.isConnected = false;
-
             return true;
         }catch(e){
+            this.mqttclient = undefined;
             this.log.error(`Logout Error: ${e}`);
         }
 
