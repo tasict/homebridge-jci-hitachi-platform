@@ -1,7 +1,7 @@
 {
   "name": "homebridge-jci-hitachi-platform",
   "displayName": "Homebridge Jci Hitachi Platform",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Homebridge platform plugin providing HomeKit support for Jci Hitachi air conditioners.",
   "license": "Apache-2.0",
   "repository": {
