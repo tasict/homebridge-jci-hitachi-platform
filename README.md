@@ -2,6 +2,8 @@
 
 [![GitHub version](https://img.shields.io/github/package-json/v/tasict/homebridge-jci-hitachi-platform?label=GitHub)](https://github.com/tasict/homebridge-jci-hitachi-platform)
 [![npm version](https://img.shields.io/npm/v/homebridge-jci-hitachi-platform?color=%23cb3837&label=npm)](https://www.npmjs.com/package/homebridge-jci-hitachi-platform)
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=for-the-badge&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
 `homebridge-jci-hitachi` is a dynamic platform plugin for [Homebridge](https://homebridge.io) that provides HomeKit support for Jci Hitachi single and multi-split air conditioning systems.
 
