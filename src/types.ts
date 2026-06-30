@@ -1,5 +1,5 @@
 import { PlatformConfig, PlatformAccessory } from 'homebridge';
-import {AWSThings} from './jci-hitachi-aws-api';
+import {AWSThings} from './jci-hitachi-models';
 import JciHitachiPlatform from './platform';
 
 

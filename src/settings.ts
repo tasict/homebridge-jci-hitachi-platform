@@ -4,15 +4,12 @@ export const PLUGIN_NAME = 'homebridge-JciHitachi-platform';
 // The platform the plugin creates (see config.json).
 export const PLATFORM_NAME = 'JciHitachi Platform';
 
-// 360 sec = 6 min
-export const LOGIN_RETRY_DELAY = 360 * 1000;
+// Base delay before the first reconnect attempt. 30 sec.
+export const LOGIN_RETRY_DELAY = 30 * 1000;
 
-export const MAX_NO_OF_FAILED_LOGIN_ATTEMPTS = 5;
-
-// Used to renew the token periodically. Only a safety measure, since we are handling
-// network errors dynamically and re-issuing a login upon a 401 Unauthorized error.
-// 604,800 sec = 7 days
-export const LOGIN_TOKEN_REFRESH_INTERVAL = 604800 * 1000;
+// Upper bound for the exponential reconnect backoff. We never stop retrying so the
+// plugin can recover on its own once the cloud comes back from maintenance. 10 min.
+export const MAX_LOGIN_RETRY_DELAY = 600 * 1000;
 
 // 60 sec = 1 min
 export const DEVICE_STATUS_REFRESH_INTERVAL = 60 * 1000;

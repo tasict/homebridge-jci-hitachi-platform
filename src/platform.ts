@@ -8,13 +8,14 @@ import {
   PlatformConfig,
   Service,
 } from 'homebridge';
-import JciHitachiAWSAPI, {AWSThings, AWSThingDictionary} from './jci-hitachi-aws-api';
+import JciHitachiAWSAPI from './jci-hitachi-aws-api';
+import { AWSThings, AWSThingDictionary } from './jci-hitachi-models';
 import ClimateAccessory from './accessories/climate';
 import JciHitachiPlatformLogger from './logger';
 import { JciHitachiAccessoryContext, JciHitachiPlatformConfig, JciHitachiAccessory } from './types';
 import {
   LOGIN_RETRY_DELAY,
-  MAX_NO_OF_FAILED_LOGIN_ATTEMPTS,
+  MAX_LOGIN_RETRY_DELAY,
   PLATFORM_NAME,
   PLUGIN_NAME,
 } from './settings';
@@ -36,8 +37,8 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
   // Used to track restored cached accessories
   private readonly accessories: PlatformAccessory<JciHitachiAccessoryContext>[] = [];
 
-  private _loginRetryTimeout: NodeJS.Timer | undefined;
-  private noOfFailedLoginAttempts = 0;
+  private _loginRetryTimeout: NodeJS.Timeout | undefined;
+  private reconnectAttempts = 0;
 
   public jciHitachiAWSAPI: JciHitachiAWSAPI;
   public readonly log: JciHitachiPlatformLogger;
@@ -87,12 +88,7 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
   protected notifyCallback (thing: AWSThings|undefined){
 
     if(this.jciHitachiAWSAPI.isConnected == false){
-      
-      this._loginRetryTimeout = setTimeout(
-        this.loginAndDiscoverDevices.bind(this),
-        LOGIN_RETRY_DELAY,
-      );
-
+      this.scheduleReconnect();
       return;
     }
 
@@ -151,40 +147,65 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
       .then(() => {
         if(this.jciHitachiAWSAPI.isConnected){
           this.log.info('Successfully logged in.');
-          this.noOfFailedLoginAttempts = 0;
+          // Cancel any retry that got armed by the disconnection event Logout() fires
+          // mid-login, otherwise it would later kick off a spurious reconnect cycle.
+          this.clearReconnect();
           this.discoverDevices();
         }
         else{
           this.log.error('Login failed. Skipping device discovery.');
-          this.noOfFailedLoginAttempts++;
+          this.scheduleReconnect();
         }
 
       })
-      .catch(() => {
+      .catch((error) => {
         this.log.error('Login failed. Skipping device discovery.');
-        this.noOfFailedLoginAttempts++;
-
-        if (this.noOfFailedLoginAttempts < MAX_NO_OF_FAILED_LOGIN_ATTEMPTS) {
-          this.log.error(
-            'The JciHitachiAWSAPI server might be experiencing issues at the moment. '
-            + `The plugin will try to log in again in ${LOGIN_RETRY_DELAY / 1000} seconds. `
-            + 'If the issue persists, make sure you configured the correct email and password '
-            + 'and run the latest version of the plugin. '
-            + 'Restart Homebridge when you change your config.',
-          );
-
-          this._loginRetryTimeout = setTimeout(
-            this.loginAndDiscoverDevices.bind(this),
-            LOGIN_RETRY_DELAY,
-          );
-        } else {
-          this.log.error(
-            'Maximum number of failed login attempts reached '
-            + `(${MAX_NO_OF_FAILED_LOGIN_ATTEMPTS}). `
-            + 'Check your login details and restart Homebridge to reset the plugin.',
-          );
-        }
+        this.log.debug(error);
+        this.scheduleReconnect();
       });
+  }
+
+  /**
+   * Schedules a single reconnect attempt with exponential backoff.
+   *
+   * We never stop retrying: when the cloud is down for maintenance the plugin keeps
+   * trying (with a capped delay) and recovers on its own once the service is back.
+   * The pending-timer guard prevents the connect/disconnect storm (issue #11) that
+   * happened when every accessory and every dropped-connection event scheduled its
+   * own retry.
+   */
+  scheduleReconnect() {
+    if (this._loginRetryTimeout) {
+      // A retry is already pending - don't stack timers.
+      return;
+    }
+
+    const delay = Math.min(
+      LOGIN_RETRY_DELAY * Math.pow(2, this.reconnectAttempts),
+      MAX_LOGIN_RETRY_DELAY,
+    );
+    this.reconnectAttempts++;
+
+    this.log.info(
+      `The JciHitachiAWSAPI server might be experiencing issues at the moment. `
+      + `The plugin will try to log in again in ${Math.round(delay / 1000)} seconds `
+      + `(attempt ${this.reconnectAttempts}). If the issue persists, make sure you `
+      + `configured the correct email and password and run the latest version of the plugin.`,
+    );
+
+    this._loginRetryTimeout = setTimeout(() => {
+      this._loginRetryTimeout = undefined;
+      this.loginAndDiscoverDevices();
+    }, delay);
+  }
+
+  /** Cancels a pending reconnect timer and resets the backoff counter. */
+  clearReconnect() {
+    if (this._loginRetryTimeout) {
+      clearTimeout(this._loginRetryTimeout);
+      this._loginRetryTimeout = undefined;
+    }
+    this.reconnectAttempts = 0;
   }
 
   /**

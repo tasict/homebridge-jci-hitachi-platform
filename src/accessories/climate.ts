@@ -1,8 +1,8 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback, CharacteristicEventTypes } from 'homebridge';
 import JciHitachiPlatform from '../platform';
-import { DEVICE_STATUS_REFRESH_INTERVAL, MAX_NO_OF_FAILED_LOGIN_ATTEMPTS } from '../settings';
+import { DEVICE_STATUS_REFRESH_INTERVAL } from '../settings';
 import { JciHitachiAccessoryContext, JciHitachiAccessory} from '../types';
-import { AWSThings } from '../jci-hitachi-aws-api';
+import { AWSThings } from '../jci-hitachi-models';
 
 enum ClimateCommandType {
   Power = 'Switch',
@@ -44,7 +44,7 @@ enum ClimateMode {
  */
 export default class ClimateAccessory extends JciHitachiAccessory{
   
-  private services: Service[] = [];
+  private services: Record<string, Service> = {};
   private _refreshInterval: NodeJS.Timer | undefined;
 
   constructor(
@@ -469,10 +469,10 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   public async updateStatus() {
 
     if(this.platform.jciHitachiAWSAPI.isConnected == false){
-      
-      this.platform.log.error('AWS IoT is not connected');
-      this.platform.jciHitachiAWSAPI.Login();
-      
+      // Reconnection is owned by the platform (single backoff timer). Don't kick off a
+      // login from each accessory - that is what caused the connect storm in issue #11.
+      this.platform.log.debug('AWS IoT is not connected; waiting for the platform to reconnect.');
+      this.platform.scheduleReconnect();
       return;
     }
     
