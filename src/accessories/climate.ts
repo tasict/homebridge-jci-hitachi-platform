@@ -390,8 +390,9 @@ export default class ClimateAccessory extends JciHitachiAccessory{
           `Unknown TargetHeaterCoolerState state: '${this.accessory.displayName}' '${currentMode}'`);
         break;
     }
-    return this.services['Climate'].getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState).value ;
-  
+    return this.services['Climate'].getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState).value
+      ?? this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE;
+
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue) {
