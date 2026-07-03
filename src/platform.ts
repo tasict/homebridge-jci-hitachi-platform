@@ -101,11 +101,12 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
     if(jciHitachiAccessory !== undefined){
       jciHitachiAccessory.updateStatus();
     }
-    else{
-
+    else if(this.isSupportedDevice(thing.DeviceType)){
+      // Only a supported-but-unregistered device (e.g. an AC added mid-session)
+      // warrants a re-discovery. Unsupported things (dehumidifiers, purifiers)
+      // are never registered, so re-discovering on their pushes would loop forever.
       this.log.debug(`NotifyCallback: ${thing.ThingName} is not registered.`);
       this.discoverDevices();
-
     }
 
   }
@@ -286,16 +287,17 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
           existingAccessory.context.device = device;
           this.api.updatePlatformAccessories([existingAccessory]);
 
-          // Create the accessory handler for the restored accessory
+          // Create the accessory handler only once. Re-discovery (after a
+          // reconnect) must reuse the existing handler, otherwise every run
+          // spawns another ClimateAccessory whose refresh setInterval is
+          // never cleared, multiplying the polling over time.
+          if (this.jciHitachiAccessoryDict[device.ThingName] === undefined) {
+            const jciHitachiAccessory = this.createJciHitachiAccessory(device.DeviceType, this, existingAccessory);
 
-          let jciHitachiAccessory = this.createJciHitachiAccessory(device.DeviceType, this, existingAccessory);
-
-          if(jciHitachiAccessory !== undefined){
-            this.jciHitachiAccessoryDict[device.ThingName] = jciHitachiAccessory;
+            if(jciHitachiAccessory !== undefined){
+              this.jciHitachiAccessoryDict[device.ThingName] = jciHitachiAccessory;
+            }
           }
-
-          this.api.updatePlatformAccessories([existingAccessory]);
-
 
         } else {
           this.log.info(`Adding accessory '${device.CustomDeviceName}' (${device.ThingName}).`);
@@ -318,6 +320,10 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
 
           // Link the accessory to your platform
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+
+          // Track it so the next discovery run treats it as existing instead of
+          // registering the same UUID again.
+          this.accessories.push(accessory);
         }
       }
 
