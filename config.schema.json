@@ -27,6 +27,12 @@
         "placeholder": "Password",
         "required": true
       },
+      "autoCleanWhenPowerOff": {
+        "title": "Auto Frost Wash (凍結洗淨) on Power Off",
+        "description": "Automatically start a frost wash when a device is turned off while it reports that cleaning is recommended. Only works when the plugin is logged in with the host (owner) account; shared secondary accounts cannot trigger it.",
+        "type": "boolean",
+        "default": false
+      },
       "debugMode": {
         "title": "Debug Mode",
         "description": "When enabled, debug messages will be written to the log.",
@@ -55,6 +61,14 @@
           "key": "password",
           "type": "password"
         }
+      ]
+    },
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        "autoCleanWhenPowerOff",
+        "debugMode"
       ]
     }
   ]

@@ -47,6 +47,11 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   private services: Record<string, Service> = {};
   private _refreshInterval: NodeJS.Timer | undefined;
 
+  // Last device-reported power state, used to detect the on -> off transition for
+  // the auto frost wash. Undefined until the first status arrives, so a device
+  // that is already off at startup never triggers a wash.
+  private lastSwitchOn: number | undefined;
+
   constructor(
     protected readonly platform: JciHitachiPlatform,
     protected readonly accessory: PlatformAccessory<JciHitachiAccessoryContext>,
@@ -212,8 +217,13 @@ export default class ClimateAccessory extends JciHitachiAccessory{
      this.services['LeakSensor'].setCharacteristic(this.platform.Characteristic.ConfiguredName, '凍結洗淨通知');
 
 
+    if (this.platform.platformConfig.autoCleanWhenPowerOff && !this.platform.jciHitachiAWSAPI.isHost) {
+      this.platform.log.warn(`'${this.accessory.displayName}': autoCleanWhenPowerOff is enabled, but the `
+        + 'configured account is not the host (owner) account. 凍結洗淨 is a host-only command, '
+        + 'so the automatic frost wash will not be triggered.');
+    }
 
-    
+
     this.refreshDeviceStatus();
 
   }
@@ -301,7 +311,50 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   async getCleanNotification():Promise<CharacteristicValue> {
     return this.accessory.context.device.CleanNotification;
   }
-    
+
+  /**
+   * Auto frost wash (凍結洗淨): when the device reports an on -> off transition while
+   * its clean notification is active, trigger CleanSwitch automatically.
+   *
+   * This runs on device-reported state (MQTT status pushes), so it covers a
+   * power-off from HomeKit, the IR remote and the vendor app alike, and only fires
+   * once the unit has confirmed it is off - no race with the power-off command.
+   */
+  private checkAutoClean() {
+
+    const switchOn = this.accessory.context.device.SwitchOn;
+    const turnedOff = this.lastSwitchOn === 1 && switchOn === 0;
+    this.lastSwitchOn = switchOn;
+
+    if (!turnedOff || !this.platform.platformConfig.autoCleanWhenPowerOff) {
+      return;
+    }
+
+    if (!this.accessory.context.device.CleanNotification) {
+      return;
+    }
+
+    if (this.accessory.context.device.CleanSwitch) {
+      // A frost wash is already running; don't send the command again.
+      return;
+    }
+
+    if (!this.platform.jciHitachiAWSAPI.isHost) {
+      // CleanSwitch is host-only (same gate as the QuickMode/CleanSwitch switches);
+      // a shared secondary account cannot trigger it. A warning is logged once at
+      // startup, so keep this at debug level to avoid spamming on every power-off.
+      this.platform.log.debug(`Accessory: '${this.accessory.displayName}' skipped auto 凍結洗淨 (not the host account).`);
+      return;
+    }
+
+    this.platform.log.info(`Accessory: '${this.accessory.displayName}' turned off with a pending `
+      + 'clean notification; triggering 凍結洗淨 automatically.');
+
+    this.setStatus(ClimateCommandType.CleanSwitch, 1);
+    this.services['CleanSwitch']?.updateCharacteristic(this.platform.Characteristic.On, true);
+  }
+
+
 
   async getCurrentHeaterCoolerState():Promise<CharacteristicValue> {
 
@@ -476,8 +529,10 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       this.platform.scheduleReconnect();
       return;
     }
-    
-    let temperatureSetting:number = this.accessory.context.device.TemperatureSetting || 0;      
+
+    this.checkAutoClean();
+
+    let temperatureSetting:number = this.accessory.context.device.TemperatureSetting || 0;
     
     if(temperatureSetting > this.accessory.context.device.TemperatureSettingMax || temperatureSetting < this.accessory.context.device.TemperatureSettingMin){
       temperatureSetting = this.accessory.context.device.IndoorTemperature || this.accessory.context.device.TemperatureSettingMin;

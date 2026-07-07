@@ -49,6 +49,9 @@ The password of your account.
 
 Optional:
 
+* `autoCleanWhenPowerOff` (boolean):
+If `true`, the plugin will automatically start a frost wash (凍結洗淨) whenever a device is turned off (from HomeKit, the IR remote or the vendor app) while it reports that cleaning is recommended. Note: the frost wash command only works for the host (owner) account. If Homebridge is logged in with a shared secondary account, this option has no effect and a warning is logged at startup.
+
 * `debugMode` (boolean):
 If `true`, the plugin will print debugging information to the Homebridge log.
 
