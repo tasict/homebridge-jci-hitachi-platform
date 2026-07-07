@@ -83,6 +83,12 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
       this.log.debug('Finished launching and restored cached accessories.');
       this.configurePlugin();
     });
+
+    // Disconnect from AWS IoT cleanly when Homebridge shuts down or restarts,
+    // instead of leaving the MQTT session to die by keep-alive timeout.
+    this.api.on(APIEvent.SHUTDOWN, () => {
+      this.jciHitachiAWSAPI.Logout().catch(() => {});
+    });
   }
 
   protected notifyCallback (thing: AWSThings|undefined){
@@ -137,6 +143,7 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
         // retrying internally (e.g. AWS_ERROR_HTTP_WEBSOCKET_UPGRADE_FAILURE with stale
         // credentials never succeeds), so an orphaned instance would spam connect
         // failures and leak the native client.
+        const previousTokens = this.jciHitachiAWSAPI?.aws_tokens;
         this.jciHitachiAWSAPI?.Logout().catch(() => {});
 
         // Create JciHitachiAWSAPI communication module
@@ -145,7 +152,11 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
           this.platformConfig.password,
           this.log
         );
-        
+
+        // Hand the tokens over so Login() can keep using the refresh token instead
+        // of falling back to a password login on every reconnect attempt.
+        this.jciHitachiAWSAPI.aws_tokens = previousTokens;
+
         this.jciHitachiAWSAPI.setCallback(this.notifyCallback.bind(this));
     }
 

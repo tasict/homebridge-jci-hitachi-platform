@@ -103,7 +103,8 @@ export class JciHitachiAWSCognitoConnection extends JciHitachiAWSHttpConnection 
                 auth_result['AccessToken'],
                 auth_result['IdToken'],
                 use_refresh_token && this.aws_tokens ? this.aws_tokens.refresh_token : auth_result['RefreshToken'],
-                new Date().valueOf() + auth_result['ExpiresIn'],
+                // ExpiresIn is in seconds; keep the expiration timestamp in ms.
+                new Date().valueOf() + auth_result['ExpiresIn'] * 1000,
             );
         } else {
             this.log.error(`login_req: ${JSON.stringify(response.data)}`);

@@ -109,7 +109,22 @@ export default class JciHitachiAWSAPI {
             // negotiation error or a cloud-maintenance outage) does not stick forever.
             this.isLoginFailed = false;
 
-            this.aws_tokens = await (new JciHitachiAWSCognitoConnection(this.email, this.password, undefined, this.log)).login(false);
+            // Prefer the refresh token from a previous session: reconnects happen every
+            // 30 s - 10 min during an outage, and hammering Cognito with password logins
+            // risks throttling/lockout. Fall back to a password login when the refresh
+            // token is missing, expired or revoked.
+            if (this.aws_tokens?.refresh_token) {
+                try {
+                    this.aws_tokens = await (new JciHitachiAWSCognitoConnection(this.email, this.password, this.aws_tokens, this.log)).login(true);
+                } catch (e) {
+                    this.log.debug(`Refresh-token login failed, falling back to a password login: ${e}`);
+                    this.aws_tokens = undefined;
+                }
+            }
+
+            if (!this.aws_tokens) {
+                this.aws_tokens = await (new JciHitachiAWSCognitoConnection(this.email, this.password, undefined, this.log)).login(false);
+            }
 
             if (!this.aws_tokens) {
                 this.log.info('Login failed');
@@ -130,7 +145,9 @@ export default class JciHitachiAWSAPI {
                 this.is_host = this.aws_identity.identity_id === this.aws_identity.host_identity_id;
 
                 if (this.aws_credentials && this.aws_identity.host_identity_id.length > 0) {
-                    this.log.debug(JSON.stringify(this));
+                    // Never dump `this` here: it contains the account password, the
+                    // Cognito tokens and the AWS credentials, and debug logs routinely
+                    // end up attached to GitHub issues.
                     this.mqttclient = this.createMQTTClient();
                 }
 
@@ -168,6 +185,13 @@ export default class JciHitachiAWSAPI {
                         this.isLoginFailed = true;
                         return false;
                     }
+
+                    // Reset the stale-connection marker: after an outage longer than the
+                    // 600 s threshold it still holds a pre-outage timestamp, and the next
+                    // RefeshDevice poll would flag the fresh connection as timed out and
+                    // log out again right away. 0 disables the check until the first
+                    // response arrives.
+                    this.last_received_time = 0;
 
                     const suback = await this.mqttclient.subscribe({
                         subscriptions: [
