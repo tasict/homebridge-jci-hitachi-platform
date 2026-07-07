@@ -358,7 +358,8 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
 
       // At this point, we set up all devices from JciHitachiAWSAPI, but we did not unregister
       // cached devices that do not exist on the JciHitachiAWSAPI account anymore.
-      for (const cachedAccessory of this.accessories) {
+      // Iterate over a copy because removals splice the array.
+      for (const cachedAccessory of [...this.accessories]) {
 
         if (cachedAccessory.context.device) {
           const thingName = cachedAccessory.context.device.ThingName;
@@ -370,6 +371,20 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
               + 'because it does not exist on the JciHitachiAWSAPI account (anymore?) or is ignored.');
 
             this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [cachedAccessory]);
+
+            // Dispose the handler (stops its polling interval) and forget the accessory.
+            // Without this, the next discovery run would unregister it again, and a
+            // device re-added to the account mid-session would be treated as already
+            // registered and never appear in HomeKit until a restart.
+            if (this.jciHitachiAccessoryDict[thingName] !== undefined) {
+              this.jciHitachiAccessoryDict[thingName].dispose();
+              delete this.jciHitachiAccessoryDict[thingName];
+            }
+
+            const index = this.accessories.indexOf(cachedAccessory);
+            if (index >= 0) {
+              this.accessories.splice(index, 1);
+            }
           }
         }
       }

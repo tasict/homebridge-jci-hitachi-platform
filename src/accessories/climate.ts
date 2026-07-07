@@ -45,12 +45,13 @@ enum ClimateMode {
 export default class ClimateAccessory extends JciHitachiAccessory{
   
   private services: Record<string, Service> = {};
-  private _refreshInterval: NodeJS.Timer | undefined;
+  private _refreshInterval: NodeJS.Timeout | undefined;
 
   // Last device-reported power state, used to detect the on -> off transition for
   // the auto frost wash. Undefined until the first status arrives, so a device
   // that is already off at startup never triggers a wash.
   private lastSwitchOn: number | undefined;
+
 
   constructor(
     protected readonly platform: JciHitachiPlatform,
@@ -251,6 +252,13 @@ export default class ClimateAccessory extends JciHitachiAccessory{
         this.refreshDeviceStatus.bind(this),
         DEVICE_STATUS_REFRESH_INTERVAL,
       );
+    }
+  }
+
+  public dispose(): void {
+    if (this._refreshInterval) {
+      clearInterval(this._refreshInterval);
+      this._refreshInterval = undefined;
     }
   }
 

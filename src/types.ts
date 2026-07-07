@@ -22,6 +22,10 @@ export interface JciHitachiAccessoryContext {
 export abstract class JciHitachiAccessory {
 
   public async updateStatus(): Promise<void>{}
+
+  /** Releases resources held by the handler (e.g. polling timers) when the accessory is unregistered. */
+  public dispose(): void {}
+
   constructor(protected readonly platform: JciHitachiPlatform, protected readonly accessory: PlatformAccessory<JciHitachiAccessoryContext>  ) { }
 
 }
