@@ -21,6 +21,11 @@
     "node": "^18.20.4 || ^20.15.1 || ^22.0.0 || ^24.0.0"
   },
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "homebridge-ui",
+    "config.schema.json"
+  ],
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint src/**.ts --max-warnings=0",
@@ -42,6 +47,7 @@
   ],
   "dependencies": {
     "@aws-sdk/util-utf8-browser": "^3.259.0",
+    "@homebridge/plugin-ui-utils": "^2.2.4",
     "aws-iot-device-sdk-v2": "^1.19.1",
     "axios": "^1.6.7",
     "tslog": "^4.9.2",

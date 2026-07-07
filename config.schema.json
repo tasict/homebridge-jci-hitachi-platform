@@ -2,6 +2,7 @@
   "pluginAlias": "JciHitachi Platform",
   "pluginType": "platform",
   "singular": true,
+  "customUi": true,
   "schema": {
     "type": "object",
     "properties": {
@@ -26,6 +27,14 @@
         "type": "string",
         "placeholder": "Password",
         "required": true
+      },
+      "ignoredDevices": {
+        "title": "Ignored Devices",
+        "description": "ThingNames of devices that should not be exposed to HomeKit. Managed via the device list in the plugin settings UI.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "autoCleanWhenPowerOff": {
         "title": "Auto Frost Wash (凍結洗淨) on Power Off",

@@ -49,6 +49,9 @@ The password of your account.
 
 Optional:
 
+* `ignoredDevices` (array of strings):
+`ThingName`s of devices that should not be exposed to HomeKit. The easiest way to manage this list is through the plugin settings UI in Homebridge Config UI X: it shows all devices on your account (remembering the login token between visits) and lets you tick the ones to skip. Restart Homebridge after changing the list.
+
 * `autoCleanWhenPowerOff` (boolean):
 If `true`, the plugin will automatically start a frost wash (凍結洗淨) whenever a device is turned off (from HomeKit, the IR remote or the vendor app) while it reports that cleaning is recommended. Note: the frost wash command only works for the host (owner) account. If Homebridge is logged in with a shared secondary account, this option has no effect and a warning is logged at startup.
 

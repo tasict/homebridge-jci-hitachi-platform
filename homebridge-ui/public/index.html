@@ -1,0 +1,140 @@
+<div class="card" style="margin-bottom: 1rem;">
+  <div class="card-body">
+    <h5 class="card-title">裝置清單</h5>
+    <p class="card-text text-muted" style="font-size: 0.9em; margin-bottom: 0.5rem;">
+      勾選「略過」的裝置不會加入 HomeKit。修改後請按下方「儲存」，並重啟 Homebridge 讓設定生效。
+    </p>
+    <div id="deviceStatus" class="text-muted" style="font-size: 0.9em; margin-bottom: 0.5rem;"></div>
+    <div style="overflow-x: auto;">
+      <table class="table table-sm" id="deviceTable" style="display: none;">
+        <thead>
+          <tr>
+            <th style="width: 4rem;">略過</th>
+            <th>名稱</th>
+            <th>類型</th>
+            <th>ThingName</th>
+          </tr>
+        </thead>
+        <tbody id="deviceRows"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" id="btnRefresh">重新整理裝置清單</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const DEVICE_TYPE_NAMES = { 1: '冷氣', 2: '除濕機', 3: '空氣清淨機' };
+  const SUPPORTED_DEVICE_TYPES = [1];
+
+  const statusEl = document.getElementById('deviceStatus');
+  const tableEl = document.getElementById('deviceTable');
+  const rowsEl = document.getElementById('deviceRows');
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  async function getConfigBlocks() {
+    const configs = await homebridge.getPluginConfig();
+    if (configs.length === 0) {
+      configs.push({ platform: 'JciHitachi Platform', name: 'JciHitachi Platform' });
+    }
+    return configs;
+  }
+
+  // Collects the checked thingNames from the table and stages them into the
+  // plugin config (persisted when the user presses the Save button).
+  async function applyIgnoredFromTable() {
+    const ignored = Array.from(rowsEl.querySelectorAll('input[type=checkbox]'))
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.dataset.thingname);
+
+    const configs = await getConfigBlocks();
+    configs[0].ignoredDevices = ignored;
+    await homebridge.updatePluginConfig(configs);
+    setStatus(ignored.length > 0
+      ? `已略過 ${ignored.length} 台裝置（尚未儲存，請按下方「儲存」）`
+      : '未略過任何裝置（尚未儲存，請按下方「儲存」）');
+  }
+
+  function renderDevices(devices, ignoredDevices) {
+    rowsEl.innerHTML = '';
+
+    for (const device of devices) {
+      const tr = document.createElement('tr');
+
+      const tdCheck = document.createElement('td');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.thingname = device.thingName;
+      checkbox.checked = ignoredDevices.includes(device.thingName);
+      checkbox.addEventListener('change', () => {
+        applyIgnoredFromTable().catch((e) => homebridge.toast.error(String(e), '更新設定失敗'));
+      });
+      tdCheck.appendChild(checkbox);
+
+      const tdName = document.createElement('td');
+      tdName.textContent = device.name || '(未命名)';
+
+      const tdType = document.createElement('td');
+      tdType.textContent = DEVICE_TYPE_NAMES[device.deviceType] || `未知 (${device.deviceType})`;
+      if (!SUPPORTED_DEVICE_TYPES.includes(device.deviceType)) {
+        tdType.textContent += '，插件尚未支援';
+      }
+
+      const tdThing = document.createElement('td');
+      tdThing.textContent = device.thingName;
+      tdThing.style.fontFamily = 'monospace';
+      tdThing.style.fontSize = '0.85em';
+
+      tr.appendChild(tdCheck);
+      tr.appendChild(tdName);
+      tr.appendChild(tdType);
+      tr.appendChild(tdThing);
+      rowsEl.appendChild(tr);
+    }
+
+    tableEl.style.display = devices.length > 0 ? '' : 'none';
+  }
+
+  async function loadDevices() {
+    const configs = await getConfigBlocks();
+    const config = configs[0];
+
+    if (!config.email) {
+      setStatus('請先在下方填寫 Email 與密碼，再按「重新整理裝置清單」。');
+      return;
+    }
+
+    homebridge.showSpinner();
+    setStatus('載入中…');
+
+    try {
+      const resp = await homebridge.request('/devices', {
+        email: config.email,
+        password: config.password || '',
+      });
+
+      renderDevices(resp.devices, config.ignoredDevices || []);
+      setStatus(`共 ${resp.devices.length} 台裝置`
+        + (resp.usedCachedToken ? '（使用已記住的登入 Token）' : '（已重新登入並記住 Token）'));
+    } catch (e) {
+      setStatus('載入裝置清單失敗。');
+      homebridge.toast.error((e && e.message) || String(e), '載入裝置失敗');
+    } finally {
+      homebridge.hideSpinner();
+    }
+  }
+
+  // Keep the regular schema-generated form (account fields and options) below the
+  // device list.
+  homebridge.showSchemaForm();
+
+  document.getElementById('btnRefresh').addEventListener('click', () => {
+    loadDevices();
+  });
+
+  loadDevices();
+})();
+</script>

@@ -101,10 +101,11 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
     if(jciHitachiAccessory !== undefined){
       jciHitachiAccessory.updateStatus();
     }
-    else if(this.isSupportedDevice(thing.DeviceType)){
+    else if(this.isSupportedDevice(thing.DeviceType) && !this.isIgnoredDevice(thing.ThingName)){
       // Only a supported-but-unregistered device (e.g. an AC added mid-session)
       // warrants a re-discovery. Unsupported things (dehumidifiers, purifiers)
-      // are never registered, so re-discovering on their pushes would loop forever.
+      // and user-ignored devices are never registered, so re-discovering on
+      // their pushes would loop forever.
       this.log.debug(`NotifyCallback: ${thing.ThingName} is not registered.`);
       this.discoverDevices();
     }
@@ -244,6 +245,11 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
 
   }
 
+  /** True when the user excluded this device from HomeKit via the settings UI. */
+  isIgnoredDevice(thingName: string): boolean {
+    return (this.platformConfig.ignoredDevices ?? []).includes(thingName);
+  }
+
   /**
    * Fetches all of the user's devices from JciHitachiAWSAPI and sets up handlers.
    *
@@ -271,6 +277,12 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
         // Check if the device is supported
         if (!this.isSupportedDevice(device.DeviceType)) {
           this.log.info(`Skipping unsupport device '${device.CustomDeviceName}' with ${device.DeviceType}`);
+          continue;
+        }
+
+        // Check if the user excluded the device via the settings UI
+        if (this.isIgnoredDevice(device.ThingName)) {
+          this.log.info(`Skipping ignored device '${device.CustomDeviceName}' (${device.ThingName}).`);
           continue;
         }
 
@@ -340,10 +352,11 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
         if (cachedAccessory.context.device) {
           const thingName = cachedAccessory.context.device.ThingName;
 
-          if (this.jciHitachiAWSAPI.getDevice(thingName) === undefined) {
-            // This cached devices does not exist on the JciHitachiAWSAPI account (anymore).
+          if (this.jciHitachiAWSAPI.getDevice(thingName) === undefined || this.isIgnoredDevice(thingName)) {
+            // This cached device does not exist on the JciHitachiAWSAPI account
+            // (anymore), or the user excluded it via the settings UI.
             this.log.info(`Removing accessory '${cachedAccessory.displayName}' (${thingName}) `
-              + 'because it does not exist on the JciHitachiAWSAPI account (anymore?).');
+              + 'because it does not exist on the JciHitachiAWSAPI account (anymore?) or is ignored.');
 
             this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [cachedAccessory]);
           }
