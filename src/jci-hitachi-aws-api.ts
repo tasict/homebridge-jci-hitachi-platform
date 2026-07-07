@@ -19,6 +19,29 @@ import {
     NotifyCallback,
 } from './jci-hitachi-models';
 
+// How long Login() waits for the MQTT connection to be established before
+// giving up and letting the platform's backoff retry with fresh credentials.
+const MQTT_CONNECT_TIMEOUT = 30 * 1000;
+
+// Upper bound for MQTT teardown steps (unsubscribe/stop) during Logout().
+const MQTT_TEARDOWN_TIMEOUT = 5 * 1000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms} ms`)), ms);
+        promise.then(
+            (value) => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timer);
+                reject(error);
+            },
+        );
+    });
+}
+
 function generateRandomHex(length: number): string {
     const characters = 'abcdef0123456789';
     let result = '';
@@ -113,13 +136,38 @@ export default class JciHitachiAWSAPI {
 
                 if (this.mqttclient) {
 
-                    const attemptingConnect = once(this.mqttclient, 'attemptingConnect');
                     const connectionSuccess = once(this.mqttclient, 'connectionSuccess');
+                    const connectionFailure = once(this.mqttclient, 'connectionFailure');
 
                     this.mqttclient.start();
 
-                    await attemptingConnect;
-                    await connectionSuccess;
+                    // The mqtt5 client retries internally with the same static SigV4
+                    // credentials, so a failed websocket upgrade (e.g.
+                    // AWS_ERROR_HTTP_WEBSOCKET_UPGRADE_FAILURE with stale credentials)
+                    // may never succeed. Awaiting connectionSuccess unconditionally used
+                    // to hang Login() forever with the isLoggingIn mutex held, blocking
+                    // every reconnect attempt until Homebridge was restarted. Race the
+                    // outcome instead and fail the login, so the platform backoff
+                    // retries with freshly fetched credentials.
+                    const connected = await new Promise<boolean>((resolve) => {
+                        const finish = (result: boolean) => {
+                            clearTimeout(timer);
+                            resolve(result);
+                        };
+                        const timer = setTimeout(() => {
+                            this.log.error(`MQTT connection timed out after ${MQTT_CONNECT_TIMEOUT} ms.`);
+                            finish(false);
+                        }, MQTT_CONNECT_TIMEOUT);
+                        connectionSuccess.then(() => finish(true), () => finish(false));
+                        connectionFailure.then(() => finish(false), () => finish(false));
+                    });
+
+                    if (!connected) {
+                        this.log.error('MQTT connection could not be established; aborting login.');
+                        await this.Logout();
+                        this.isLoginFailed = true;
+                        return false;
+                    }
 
                     const suback = await this.mqttclient.subscribe({
                         subscriptions: [
@@ -153,34 +201,47 @@ export default class JciHitachiAWSAPI {
 
     public async Logout(): Promise<boolean> {
 
-        try {
+        const client = this.mqttclient;
+        const wasConnected = this.isConnected;
 
-            this.isConnected = false;
+        this.isConnected = false;
+        this.mqttclient = undefined;
 
-            if (this.mqttclient) {
+        if (!client) {
+            return true;
+        }
 
-                const unsuback = await this.mqttclient.unsubscribe({
+        // Never await MQTT teardown unbounded: 'disconnection' only fires when the
+        // client was actually connected, and the offline operation queue can park
+        // unsubscribe/stop forever - a hung Logout() also hangs the Login() that
+        // calls it, with the isLoggingIn mutex held (no reconnect ever runs again).
+        if (wasConnected) {
+            try {
+                const unsuback = await withTimeout(client.unsubscribe({
                     topicFilters: [
                         `${this.aws_identity?.host_identity_id}/#`,
                     ],
-                });
+                }), MQTT_TEARDOWN_TIMEOUT, 'MQTT unsubscribe');
                 this.log.debug('Unsuback result: ' + JSON.stringify(unsuback));
-
-                const disconnection = once(this.mqttclient, 'disconnection');
-                const stopped = once(this.mqttclient, 'stopped');
-
-                this.mqttclient.stop();
-
-                await disconnection;
-                await stopped;
-
-                this.mqttclient = undefined;
+            } catch (e) {
+                this.log.debug(`Logout unsubscribe error: ${e}`);
             }
+        }
 
-            return true;
+        try {
+            const stopped = once(client, 'stopped');
+            client.stop();
+            await withTimeout(stopped, MQTT_TEARDOWN_TIMEOUT, 'MQTT stop');
         } catch (e) {
-            this.mqttclient = undefined;
-            this.log.error(`Logout Error: ${e}`);
+            this.log.debug(`Logout stop error: ${e}`);
+        }
+
+        try {
+            // Release the native client, otherwise an abandoned instance keeps
+            // retrying its connection (and spamming failures) in the background.
+            client.close();
+        } catch (e) {
+            this.log.debug(`Logout close error: ${e}`);
         }
 
         return true;

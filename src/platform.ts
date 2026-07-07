@@ -132,6 +132,12 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
 
         this.log.info('Creating New JciHitachiAWSAPI.');
 
+        // Tear down the failed instance before abandoning it. Its mqtt5 client keeps
+        // retrying internally (e.g. AWS_ERROR_HTTP_WEBSOCKET_UPGRADE_FAILURE with stale
+        // credentials never succeeds), so an orphaned instance would spam connect
+        // failures and leak the native client.
+        this.jciHitachiAWSAPI?.Logout().catch(() => {});
+
         // Create JciHitachiAWSAPI communication module
         this.jciHitachiAWSAPI = new JciHitachiAWSAPI(
           this.platformConfig.email,
