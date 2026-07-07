@@ -52,6 +52,11 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   // that is already off at startup never triggers a wash.
   private lastSwitchOn: number | undefined;
 
+  // Temperature range currently applied to the threshold characteristics. The real
+  // range arrives asynchronously with the registration payload, after the
+  // constructor already applied the 16-32 defaults.
+  private appliedTemperatureMin: number | undefined;
+  private appliedTemperatureMax: number | undefined;
 
   constructor(
     protected readonly platform: JciHitachiPlatform,
@@ -539,6 +544,21 @@ export default class ClimateAccessory extends JciHitachiAccessory{
     }
 
     this.checkAutoClean();
+
+    const temperatureMin = this.accessory.context.device.TemperatureSettingMin;
+    const temperatureMax = this.accessory.context.device.TemperatureSettingMax;
+
+    if (temperatureMax > temperatureMin
+      && (temperatureMin !== this.appliedTemperatureMin || temperatureMax !== this.appliedTemperatureMax)) {
+
+      this.services['Climate'].getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+        .setProps({ minValue: temperatureMin, maxValue: temperatureMax, minStep: 1 });
+      this.services['Climate'].getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+        .setProps({ minValue: temperatureMin, maxValue: temperatureMax, minStep: 1 });
+
+      this.appliedTemperatureMin = temperatureMin;
+      this.appliedTemperatureMax = temperatureMax;
+    }
 
     let temperatureSetting:number = this.accessory.context.device.TemperatureSetting || 0;
     
