@@ -7,9 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-25
+
+### Added
+
+- 自動凍結洗淨 (Auto Frost Wash) switch on every air conditioner (host account only). While it is on, a frost wash starts automatically once the unit has been off for 5 minutes and reports that cleaning is recommended; switching the unit back on within those 5 minutes cancels it. Each unit has its own switch, and its state survives restarts.
+- Project website in English, Traditional Chinese and Japanese: [tasict.github.io/homebridge-jci-hitachi-platform](https://tasict.github.io/homebridge-jci-hitachi-platform/). It is now the plugin's homepage in the Homebridge UI.
+- You can now support the plugin by buying me a boba (paid by card, no PayPal account needed) as well as with PayPal: from the bottom of the plugin settings, the donate link in the Homebridge UI, the README or GitHub's Sponsor button.
+
 ### Changed
 
+- `autoCleanWhenPowerOff` now sets the initial state of the new 自動凍結洗淨 switches, and the automatic wash waits 5 minutes after power-off instead of starting right away.
+- The settings page now shows every option itself, in task order: account, device list, then the rarely used options under 進階 (Advanced).
 - Upgraded TypeScript to 5.9 and migrated to typescript-eslint v8.
+- Rewrote the README: feature overview, supported devices, HomeKit service mapping (including the fan speed steps and host-only switches), full configuration reference and expanded troubleshooting; fixed repository links that pointed to the wrong repo name.
+
+### Removed
+
+- The npm package no longer contains the development test script (`dist/test.*`); it now ships only what the plugin needs to run, plus the changelog.
+- `docs/dual-account-setup.md`, which described a different vendor's app.
 
 ## [1.4.0] - 2026-07-07
 
@@ -17,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings UI (`homebridge-ui`) with a device list, so devices can be reviewed and managed from the Homebridge config UI.
 - `ignoredDevices` option to exclude specific devices from being exposed to HomeKit.
-- Login token cache, so restarts can resume the session instead of performing a fresh password login every time.
+- The settings UI remembers the login token, so reopening the device list doesn't need a fresh password login every time.
 - `autoCleanWhenPowerOff` option to automatically trigger frost wash (凍結洗淨) when the air conditioner is powered off.
 
 ### Changed
@@ -148,7 +164,8 @@ First tagged release.
 
 - Connection issue from the initial version.
 
-[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.2.7...v1.3.0
