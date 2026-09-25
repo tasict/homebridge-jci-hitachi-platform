@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jci Hitachi Platform：透過 Homebridge 把日立冷氣接進 Apple「家庭」</title>
+<meta name="description" content="免費的 Homebridge 外掛，把使用 AirCloud Home App（台灣日立）的冷氣接進 Apple「家庭」App，支援凍結洗淨、快速運轉、濕度與空氣品質。">
+<link rel="canonical" href="https://tasict.github.io/homebridge-jci-hitachi-platform/zh-TW/">
+<link rel="alternate" hreflang="en" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<link rel="alternate" hreflang="zh-TW" href="https://tasict.github.io/homebridge-jci-hitachi-platform/zh-TW/">
+<link rel="alternate" hreflang="ja" href="https://tasict.github.io/homebridge-jci-hitachi-platform/ja/">
+<link rel="alternate" hreflang="x-default" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jci Hitachi Platform：透過 Homebridge 把日立冷氣接進 Apple「家庭」">
+<meta property="og:description" content="免費的 Homebridge 外掛，把使用 AirCloud Home App（台灣日立）的冷氣接進 Apple「家庭」App，支援凍結洗淨、快速運轉、濕度與空氣品質。">
+<meta property="og:url" content="https://tasict.github.io/homebridge-jci-hitachi-platform/zh-TW/">
+<meta property="og:image" content="https://tasict.github.io/homebridge-jci-hitachi-platform/assets/og.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f6f4f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161213" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/icon.png">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="wrap masthead">
+  <a class="wordmark" href="./"><img src="../assets/icon.svg" alt="" width="30" height="30">Jci Hitachi Platform</a>
+  <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">原始碼</a>
+  <a class="tip head-tip" href="https://tasict.bobaboba.me" aria-label="請我喝珍奶"><img src="../assets/boba.png" alt="" width="24" height="24"><span>請我喝珍奶</span></a>
+  <details class="lang">
+    <summary aria-label="語言"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5z"/></svg><span>繁體中文</span></summary>
+    <ul><li><a href="../" hreflang="en" lang="en">English</a></li><li><a href="../zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW" aria-current="page">繁體中文</a></li><li><a href="../ja/" hreflang="ja" lang="ja">日本語</a></li></ul>
+  </details>
+</header>
+
+<main>
+<div class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title">你的日立冷氣，<br>放進「家庭」App。</h1>
+      <p class="lede">這是一個 Homebridge 外掛，把日立冷氣放進「家庭」App，並支援凍結洗淨、快速運轉、濕度與空氣品質。適用台灣日立的 AirCloud Home App。</p>
+      <div class="actions">
+        <a class="btn" href="#start">在 Homebridge 安裝</a>
+        <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">在 GitHub 查看</a>
+      </div>
+      <p class="fine">免費、開放原始碼。支援 Homebridge 1.6 以上，包含 2.x。</p>
+    </div>
+    <div class="room" data-demo data-mode="cool" data-t='{&quot;st&quot;:{&quot;off&quot;:&quot;關閉&quot;,&quot;cool&quot;:&quot;冷氣，設定 {t}&quot;,&quot;heat&quot;:&quot;暖氣，設定 {t}&quot;,&quot;auto&quot;:&quot;自動，設定 {t}&quot;},&quot;now&quot;:&quot;室溫 {t}&quot;}'>
+      <svg class="unit" viewBox="0 0 480 250" role="img" aria-label="一台壁掛式冷氣，依選擇的模式吹出冷風或暖風。">
+      <rect class="unit-body" x="40" y="18" width="400" height="98" rx="28"/>
+      <rect class="unit-vent" x="84" y="88" width="312" height="11" rx="5.5"/>
+      <circle class="unit-led" cx="398" cy="46" r="5"/>
+      <g class="air">
+        <path d="M120 142q120 42 240 0"/>
+        <path d="M150 186q90 34 180 0"/>
+        <path d="M182 226q58 24 116 0"/>
+      </g>
+    </svg>
+      <div class="tile">
+        <div class="tile-head">
+          <span class="tile-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span>
+          <div class="tile-name"><strong>客廳</strong><span data-status aria-live="polite"></span></div>
+          <span class="tile-now" data-now></span>
+        </div>
+        <div class="dial">
+          <button type="button" class="step" data-step="-1" aria-label="調低溫度">&minus;</button>
+          <output class="target" data-target>26°</output>
+          <button type="button" class="step" data-step="1" aria-label="調高溫度">+</button>
+        </div>
+        <fieldset class="seg">
+          <legend>模式</legend>
+          <label><input type="radio" name="mode" value="off"><span>關閉</span></label><label><input type="radio" name="mode" value="cool" checked><span>冷氣</span></label><label><input type="radio" name="mode" value="heat"><span>暖氣</span></label><label><input type="radio" name="mode" value="auto"><span>自動</span></label>
+        </fieldset>
+      </div>
+      <p class="hint">試試看。每台冷氣在「家庭」App 裡都有這些控制項。</p>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-cloud">
+    <div class="intro">
+      <h2 id="h-cloud">透過 AirCloud Home 雲端連線</h2>
+      <p>日立的 Wi-Fi 冷氣都透過 AirCloud Home 雲端控制，所以外掛會像 App 一樣，用你的帳號登入雲端。狀態一有變化，雲端就會立刻推送到 Homebridge；雲端維護而斷線時，外掛也會自己重新連上。</p>
+    </div>
+    <ol class="flow">
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M9.5 12 12 9.8l2.5 2.2M10.3 11.3v3.2h3.4v-3.2"/></svg></span><strong>「家庭」App</strong><small>iPhone、iPad、Mac 或 HomePod</small></li><li class="link" aria-hidden="true"><span>HomeKit</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M7 8h.01M7 16h.01"/></svg></span><strong>Homebridge</strong><small>執行這個外掛</small></li><li class="link" aria-hidden="true"><span>網際網路</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.1 4.7 4.7 0 0 0 7 18.5z"/></svg></span><strong>AirCloud Home</strong><small>日立的雲端服務</small></li><li class="link" aria-hidden="true"><span>網際網路</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span><strong>日立冷氣</strong><small>它的 Wi-Fi 模組</small></li>
+    </ol>
+  </section>
+
+  <section class="band" aria-labelledby="h-feat">
+    <div class="intro">
+      <h2 id="h-feat">在「家庭」App 裡能做什麼</h2>
+      <p>每台冷氣顯示為一個配件，外掛能控制的功能都整理在一起。</p>
+    </div>
+    <ul class="feats"><li><h3>開關、模式與溫度</h3><p>冷氣、暖氣和自動，溫度範圍依機器回報，每次調整 1 度。</p></li><li><h3>風速</h3><p>滑桿分七段：自動、靜音、弱、中、強、急速、超急速。</p></li><li><h3>濕度與空氣品質</h3><p>室內濕度和 PM2.5 空氣品質感應器，數值來自冷氣本身。</p></li><li><h3>凍結洗淨與快速運轉</h3><p>該洗淨時會通知你，還有凍結洗淨和快速運轉的開關，以及自動凍結洗淨。</p></li><li><h3>狀態即時同步</h3><p>用遙控器或 AirCloud Home App 操作，幾秒內就會反映在「家庭」App。</p></li><li><h3>Siri、場景與自動化</h3><p>冷氣就像其他「家庭」配件，可以請 Siri 開冷氣，或在到家前先讓臥室涼下來。</p></li></ul>
+  </section>
+
+  <section class="band" aria-labelledby="h-wash">
+    <div class="split">
+      <div class="intro">
+        <h2 id="h-wash">凍結洗淨，不用再記著 <span class="chip">1.5 新功能</span></h2>
+        <p>有凍結洗淨功能的日立冷氣，會把熱交換器結霜再融化，沖掉灰塵，並在該洗淨時提醒你。外掛把這個提醒變成「家庭」App 能通知你的感應器，還加上一個開始洗淨的開關。</p>
+        <p>開啟自動凍結洗淨後，連提醒都不必理會：關掉冷氣以後，它會自己開始洗淨。</p>
+      </div>
+      <div class="move">
+        <h3>自動凍結洗淨怎麼運作</h3>
+        <p class="move-p">每台冷氣都有自己的「自動凍結洗淨」開關，哪幾台要自動洗淨由你決定。</p>
+        <ol class="moves"><li><h3>打開「自動凍結洗淨」</h3><p>在「家庭」App 裡打開這台冷氣的開關。</p></li><li><h3>照常關掉冷氣</h3><p>用「家庭」App、遙控器或 AirCloud Home App 都可以。這時還不會有動作。</p></li><li><h3>五分鐘後</h3><p>如果冷氣仍是關機狀態、而且提示需要洗淨，外掛就會開始凍結洗淨。五分鐘內再開機的話就不會洗淨。</p></li></ol>
+        <p class="back">凍結洗淨、快速運轉和「自動凍結洗淨」開關，需要 Homebridge 用冷氣的主帳號（擁有者）登入。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-dev">
+    <div class="intro">
+      <h2 id="h-dev">適用 AirCloud Home 上的日立冷氣</h2>
+      <p>帳號裡支援的冷氣都會自動出現，不需要一台一台設定。</p>
+    </div>
+    <dl class="devs"><div><dt>冷氣</dt><dd>在 AirCloud Home App 註冊的單機與一對多冷氣。</dd></div><div><dt>主帳號或分享帳號</dt><dd>另外建立一個帳號、再把冷氣分享過去最穩定。凍結洗淨與快速運轉開關需要主帳號。</dd></div><div><dt>除濕機與空氣清淨機</dt><dd>會出現在裝置清單，但還不會加入 HomeKit。</dd></div><div><dt>排除任何一台</dt><dd>在外掛設定勾選裝置，就不會加入 HomeKit。</dd></div></dl>
+    <div class="unsupported">
+      <h3>不支援：AirCloud Go</h3>
+      <p>AirCloud Go 是日立另一個 App，使用不同的雲端服務。只註冊在那裡的冷氣不會出現在這個外掛。</p>
+    </div>
+  </section>
+
+  <section class="band" id="start" aria-labelledby="h-start">
+    <h2 id="h-start">幾分鐘就能設定好</h2>
+    <ol class="steps"><li><h3>安裝外掛</h3><p>在 Homebridge UI 開啟外掛頁面，搜尋 Jci Hitachi Platform 並安裝。</p></li><li><h3>登入帳號</h3><p>開啟外掛設定，輸入 AirCloud Home 的 Email 和密碼。裝置清單會列出帳號裡的每台冷氣。</p></li><li><h3>重新啟動 Homebridge</h3><p>冷氣會出現在「家庭」App，就在你原本使用的橋接器上。</p></li></ol>
+    <p class="fine">需要 Homebridge 1.6 以上（支援 2.x），以及 Node.js 18、20、22 或 24。 <a href="https://github.com/tasict/homebridge-jci-hitachi-platform#configuration">完整設定說明（英文）</a></p>
+  </section>
+
+  <section class="band" aria-labelledby="h-support">
+    <div class="tipjar">
+      <img src="../assets/boba.png" alt="" width="120" height="120">
+      <div>
+        <h2 id="h-support">讓它維持免費</h2>
+        <p>這個外掛沒有廣告，也沒有付費版。如果它讓你家更舒適，一杯珍奶或一點贊助，能幫我持續跟上 AirCloud Home 雲端的變動和 Homebridge 的新版本。</p>
+        <div class="actions">
+          <a class="btn" href="https://tasict.bobaboba.me"><img src="../assets/boba.png" alt="" width="22" height="22">請我喝珍奶</a>
+          <a class="tip" href="https://paypal.me/tasict">用 PayPal 贊助</a>
+        </div>
+        <p class="fine">珍奶贊助直接刷卡，不需要 PayPal 帳號。</p>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <p>由 tasict 製作，以 Apache-2.0 授權釋出。</p>
+        <ul>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform">原始碼</a></li>
+          <li><a href="https://www.npmjs.com/package/homebridge-jci-hitachi-platform">npm 套件</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/blob/master/CHANGELOG.md">更新紀錄</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/issues">回報問題</a></li>
+        </ul>
+      </div>
+      <ul class="langs"><li><a href="../" hreflang="en" lang="en">English</a></li><li><a href="../zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW" aria-current="page">繁體中文</a></li><li><a href="../ja/" hreflang="ja" lang="ja">日本語</a></li></ul>
+    </div>
+    <p class="tm">Hitachi（日立）是 Hitachi, Ltd. 的商標；AirCloud Home 與 AirCloud Go 為其各自所有者的商標；Apple Home（家庭）與 HomeKit 是 Apple Inc. 的商標。本外掛為非官方專案，與上述公司無關，也未獲其背書。</p>
+  </div>
+</footer>
+<script src="../assets/site.js"></script>
+</body>
+</html>

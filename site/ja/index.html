@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jci Hitachi Platform：日立のエアコンを Homebridge で Apple「ホーム」に</title>
+<meta name="description" content="AirCloud Home アプリ（台湾日立）の日立エアコンを Apple「ホーム」App に追加する、無料の Homebridge プラグイン。凍結洗浄、快速運転、湿度、空気質に対応します。">
+<link rel="canonical" href="https://tasict.github.io/homebridge-jci-hitachi-platform/ja/">
+<link rel="alternate" hreflang="en" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<link rel="alternate" hreflang="zh-TW" href="https://tasict.github.io/homebridge-jci-hitachi-platform/zh-TW/">
+<link rel="alternate" hreflang="ja" href="https://tasict.github.io/homebridge-jci-hitachi-platform/ja/">
+<link rel="alternate" hreflang="x-default" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jci Hitachi Platform：日立のエアコンを Homebridge で Apple「ホーム」に">
+<meta property="og:description" content="AirCloud Home アプリ（台湾日立）の日立エアコンを Apple「ホーム」App に追加する、無料の Homebridge プラグイン。凍結洗浄、快速運転、湿度、空気質に対応します。">
+<meta property="og:url" content="https://tasict.github.io/homebridge-jci-hitachi-platform/ja/">
+<meta property="og:image" content="https://tasict.github.io/homebridge-jci-hitachi-platform/assets/og.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f6f4f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161213" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/icon.png">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="wrap masthead">
+  <a class="wordmark" href="./"><img src="../assets/icon.svg" alt="" width="30" height="30">Jci Hitachi Platform</a>
+  <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">ソースコード</a>
+  <a class="tip head-tip" href="https://tasict.bobaboba.me" aria-label="タピオカをおごる"><img src="../assets/boba.png" alt="" width="24" height="24"><span>タピオカをおごる</span></a>
+  <details class="lang">
+    <summary aria-label="言語"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5z"/></svg><span>日本語</span></summary>
+    <ul><li><a href="../" hreflang="en" lang="en">English</a></li><li><a href="../zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW">繁體中文</a></li><li><a href="../ja/" hreflang="ja" lang="ja" aria-current="page">日本語</a></li></ul>
+  </details>
+</header>
+
+<main>
+<div class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title">日立のエアコンを<br>「ホーム」App で。</h1>
+      <p class="lede">日立のエアコンを「ホーム」App に追加する Homebridge プラグインです。凍結洗浄、快速運転、湿度、空気質にも対応します。台湾日立の AirCloud Home アプリで使われているエアコンが対象です。</p>
+      <div class="actions">
+        <a class="btn" href="#start">Homebridge にインストール</a>
+        <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">GitHub で見る</a>
+      </div>
+      <p class="fine">無料のオープンソース。Homebridge 1.6 以降（2.x を含む）で動作します。</p>
+    </div>
+    <div class="room" data-demo data-mode="cool" data-t='{&quot;st&quot;:{&quot;off&quot;:&quot;オフ&quot;,&quot;cool&quot;:&quot;冷房 {t} に設定&quot;,&quot;heat&quot;:&quot;暖房 {t} に設定&quot;,&quot;auto&quot;:&quot;自動 {t} に設定&quot;},&quot;now&quot;:&quot;室温 {t}&quot;}'>
+      <svg class="unit" viewBox="0 0 480 250" role="img" aria-label="選んだモードで風を送る壁掛けエアコン。">
+      <rect class="unit-body" x="40" y="18" width="400" height="98" rx="28"/>
+      <rect class="unit-vent" x="84" y="88" width="312" height="11" rx="5.5"/>
+      <circle class="unit-led" cx="398" cy="46" r="5"/>
+      <g class="air">
+        <path d="M120 142q120 42 240 0"/>
+        <path d="M150 186q90 34 180 0"/>
+        <path d="M182 226q58 24 116 0"/>
+      </g>
+    </svg>
+      <div class="tile">
+        <div class="tile-head">
+          <span class="tile-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span>
+          <div class="tile-name"><strong>リビング</strong><span data-status aria-live="polite"></span></div>
+          <span class="tile-now" data-now></span>
+        </div>
+        <div class="dial">
+          <button type="button" class="step" data-step="-1" aria-label="温度を下げる">&minus;</button>
+          <output class="target" data-target>26°</output>
+          <button type="button" class="step" data-step="1" aria-label="温度を上げる">+</button>
+        </div>
+        <fieldset class="seg">
+          <legend>モード</legend>
+          <label><input type="radio" name="mode" value="off"><span>オフ</span></label><label><input type="radio" name="mode" value="cool" checked><span>冷房</span></label><label><input type="radio" name="mode" value="heat"><span>暖房</span></label><label><input type="radio" name="mode" value="auto"><span>自動</span></label>
+        </fieldset>
+      </div>
+      <p class="hint">操作してみてください。どのエアコンにも「ホーム」App でこのコントロールが付きます。</p>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-cloud">
+    <div class="intro">
+      <h2 id="h-cloud">AirCloud Home クラウド経由で接続</h2>
+      <p>日立の無線 LAN 対応エアコンは AirCloud Home クラウドを通じて操作します。そのためプラグインは、アプリと同じようにあなたのアカウントでクラウドにサインインします。状態が変わるとクラウドからすぐに Homebridge へ届き、メンテナンスで切断されてもプラグインが自動で再接続します。</p>
+    </div>
+    <ol class="flow">
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M9.5 12 12 9.8l2.5 2.2M10.3 11.3v3.2h3.4v-3.2"/></svg></span><strong>「ホーム」App</strong><small>iPhone、iPad、Mac、HomePod</small></li><li class="link" aria-hidden="true"><span>HomeKit</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M7 8h.01M7 16h.01"/></svg></span><strong>Homebridge</strong><small>プラグインを実行</small></li><li class="link" aria-hidden="true"><span>インターネット</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.1 4.7 4.7 0 0 0 7 18.5z"/></svg></span><strong>AirCloud Home</strong><small>日立のクラウドサービス</small></li><li class="link" aria-hidden="true"><span>インターネット</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span><strong>エアコン</strong><small>無線 LAN モジュール</small></li>
+    </ol>
+  </section>
+
+  <section class="band" aria-labelledby="h-feat">
+    <div class="intro">
+      <h2 id="h-feat">「ホーム」App でできること</h2>
+      <p>各エアコンは 1 つのアクセサリとして表示され、プラグインが操作できる機能がまとめて並びます。</p>
+    </div>
+    <ul class="feats"><li><h3>電源・モード・温度</h3><p>冷房、暖房、自動。温度はエアコンが報告する範囲内で 1 度ずつ設定できます。</p></li><li><h3>風量</h3><p>スライダーで 7 段階：自動、静音、弱、中、強、急速、超急速。</p></li><li><h3>湿度と空気質</h3><p>室内の湿度と PM2.5 の空気質センサー。値はエアコン自身の計測です。</p></li><li><h3>凍結洗浄と快速運転</h3><p>洗浄の時期をお知らせし、凍結洗浄と快速運転のスイッチ、自動凍結洗浄も使えます。</p></li><li><h3>状態をすぐに反映</h3><p>リモコンや AirCloud Home アプリでの操作が、数秒で「ホーム」App に反映されます。</p></li><li><h3>Siri、シーン、オートメーション</h3><p>ほかの「ホーム」アクセサリと同じように使えるので、Siri に頼んだり、帰宅前に寝室を冷やしたりできます。</p></li></ul>
+  </section>
+
+  <section class="band" aria-labelledby="h-wash">
+    <div class="split">
+      <div class="intro">
+        <h2 id="h-wash">凍結洗浄を、忘れずに <span class="chip">1.5 の新機能</span></h2>
+        <p>凍結洗浄に対応した日立のエアコンは、熱交換器を凍らせてから溶かし、ほこりを洗い流します。洗浄の時期になるとお知らせも出します。プラグインはこのお知らせを「ホーム」App が通知できるセンサーにし、洗浄を始めるスイッチも追加します。</p>
+        <p>自動凍結洗浄を使えば、お知らせに対応する必要すらありません。エアコンを切ったあと、自動で洗浄が始まります。</p>
+      </div>
+      <div class="move">
+        <h3>自動凍結洗浄のしくみ</h3>
+        <p class="move-p">エアコンごとに「自動凍結洗淨」スイッチがあるので、自動で洗浄するエアコンを選べます。</p>
+        <ol class="moves"><li><h3>「自動凍結洗淨」をオン</h3><p>「ホーム」App で、そのエアコンのスイッチをオンにします。</p></li><li><h3>いつもどおりエアコンを切る</h3><p>「ホーム」App、リモコン、AirCloud Home アプリのどれでもかまいません。この時点ではまだ何も起きません。</p></li><li><h3>5 分後</h3><p>エアコンが切れたままで洗浄のお知らせが出ていれば、プラグインが洗浄を始めます。5 分以内にまた電源を入れた場合は洗浄しません。</p></li></ol>
+        <p class="back">凍結洗浄、快速運転、「自動凍結洗淨」のスイッチを使うには、Homebridge をエアコンのオーナーアカウントでサインインさせる必要があります。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-dev">
+    <div class="intro">
+      <h2 id="h-dev">AirCloud Home の日立エアコンに対応</h2>
+      <p>アカウントにある対応エアコンは自動で表示されます。1 台ずつ設定する必要はありません。</p>
+    </div>
+    <dl class="devs"><div><dt>エアコン</dt><dd>AirCloud Home アプリに登録されたシングル、マルチのエアコン。</dd></div><div><dt>オーナーまたは共有アカウント</dt><dd>別のアカウントを作ってエアコンを共有するのがいちばん安定します。凍結洗浄と快速運転のスイッチにはオーナーアカウントが必要です。</dd></div><div><dt>除湿機と空気清浄機</dt><dd>デバイス一覧には表示されますが、HomeKit にはまだ追加されません。</dd></div><div><dt>好きな機器を除外</dt><dd>プラグイン設定でデバイスにチェックを入れると、HomeKit に追加されません。</dd></div></dl>
+    <div class="unsupported">
+      <h3>非対応：AirCloud Go</h3>
+      <p>AirCloud Go は日立の別のアプリで、クラウドサービスも異なります。そちらにだけ登録されたエアコンは、このプラグインには表示されません。</p>
+    </div>
+  </section>
+
+  <section class="band" id="start" aria-labelledby="h-start">
+    <h2 id="h-start">数分でセットアップ</h2>
+    <ol class="steps"><li><h3>プラグインをインストール</h3><p>Homebridge UI のプラグイン画面で Jci Hitachi Platform を検索してインストールします。</p></li><li><h3>サインイン</h3><p>プラグイン設定を開き、AirCloud Home のメールアドレスとパスワードを入力します。デバイス一覧にアカウントのエアコンがすべて並びます。</p></li><li><h3>Homebridge を再起動</h3><p>今お使いのブリッジに、エアコンが「ホーム」App に表示されます。</p></li></ol>
+    <p class="fine">Homebridge 1.6 以降（2.x に対応）と、Node.js 18、20、22、24 のいずれかが必要です。 <a href="https://github.com/tasict/homebridge-jci-hitachi-platform#configuration">設定項目の詳しい説明（英語）</a></p>
+  </section>
+
+  <section class="band" aria-labelledby="h-support">
+    <div class="tipjar">
+      <img src="../assets/boba.png" alt="" width="120" height="120">
+      <div>
+        <h2 id="h-support">無料のままで続けるために</h2>
+        <p>このプラグインには広告も有料版もありません。快適に使えていたら、タピオカ 1 杯や少しのご支援が、AirCloud Home クラウドの変更や Homebridge の新バージョンへの対応を続ける力になります。</p>
+        <div class="actions">
+          <a class="btn" href="https://tasict.bobaboba.me"><img src="../assets/boba.png" alt="" width="22" height="22">タピオカをおごる</a>
+          <a class="tip" href="https://paypal.me/tasict">PayPal で支援</a>
+        </div>
+        <p class="fine">タピオカはクレジットカードで支払えます。PayPal アカウントは不要です。</p>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <p>tasict 作。Apache-2.0 ライセンスで公開しています。</p>
+        <ul>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform">ソースコード</a></li>
+          <li><a href="https://www.npmjs.com/package/homebridge-jci-hitachi-platform">npm パッケージ</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/blob/master/CHANGELOG.md">変更履歴</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/issues">問題を報告</a></li>
+        </ul>
+      </div>
+      <ul class="langs"><li><a href="../" hreflang="en" lang="en">English</a></li><li><a href="../zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW">繁體中文</a></li><li><a href="../ja/" hreflang="ja" lang="ja" aria-current="page">日本語</a></li></ul>
+    </div>
+    <p class="tm">Hitachi（日立）は Hitachi, Ltd. の商標です。AirCloud Home と AirCloud Go はそれぞれの所有者の商標です。Apple Home（ホーム）と HomeKit は Apple Inc. の商標です。本プラグインは非公式で、これらの企業とは関係がなく、承認も受けていません。</p>
+  </div>
+</footer>
+<script src="../assets/site.js"></script>
+</body>
+</html>

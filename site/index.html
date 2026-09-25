@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jci Hitachi Platform: Hitachi air conditioners in Apple Home, via Homebridge</title>
+<meta name="description" content="A free Homebridge plugin that brings Hitachi air conditioners on the AirCloud Home app (Hitachi Taiwan) into Apple Home, with frost wash, quick mode, humidity and air quality.">
+<link rel="canonical" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<link rel="alternate" hreflang="en" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<link rel="alternate" hreflang="zh-TW" href="https://tasict.github.io/homebridge-jci-hitachi-platform/zh-TW/">
+<link rel="alternate" hreflang="ja" href="https://tasict.github.io/homebridge-jci-hitachi-platform/ja/">
+<link rel="alternate" hreflang="x-default" href="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jci Hitachi Platform: Hitachi air conditioners in Apple Home, via Homebridge">
+<meta property="og:description" content="A free Homebridge plugin that brings Hitachi air conditioners on the AirCloud Home app (Hitachi Taiwan) into Apple Home, with frost wash, quick mode, humidity and air quality.">
+<meta property="og:url" content="https://tasict.github.io/homebridge-jci-hitachi-platform/">
+<meta property="og:image" content="https://tasict.github.io/homebridge-jci-hitachi-platform/assets/og.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f6f4f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161213" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<link rel="stylesheet" href="assets/site.css">
+<script>
+try {
+  if (!localStorage.getItem('lang')) {
+    const pick = tag => {
+      const t = tag.toLowerCase();
+      if (t.startsWith('zh')) return 'zh-TW';
+      return ['ja', 'en'].find(l => t.startsWith(l));
+    };
+    const lang = (navigator.languages || [navigator.language]).map(pick).find(Boolean);
+    if (lang && lang !== 'en') location.replace(lang + '/' + location.search + location.hash);
+  }
+} catch { /* storage blocked: stay on English */ }
+</script>
+</head>
+<body>
+<header class="wrap masthead">
+  <a class="wordmark" href="./"><img src="assets/icon.svg" alt="" width="30" height="30">Jci Hitachi Platform</a>
+  <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">Source code</a>
+  <a class="tip head-tip" href="https://tasict.bobaboba.me" aria-label="Buy me a boba"><img src="assets/boba.png" alt="" width="24" height="24"><span>Buy me a boba</span></a>
+  <details class="lang">
+    <summary aria-label="Language"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5z"/></svg><span>English</span></summary>
+    <ul><li><a href="./" hreflang="en" lang="en" aria-current="page">English</a></li><li><a href="zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW">繁體中文</a></li><li><a href="ja/" hreflang="ja" lang="ja">日本語</a></li></ul>
+  </details>
+</header>
+
+<main>
+<div class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title">Your Hitachi,<br>in Apple Home.</h1>
+      <p class="lede">A Homebridge plugin that puts your Hitachi air conditioners in the Home app, with frost wash, quick mode, humidity and air quality. It works with the AirCloud Home app from Hitachi Taiwan.</p>
+      <div class="actions">
+        <a class="btn" href="#start">Install in Homebridge</a>
+        <a href="https://github.com/tasict/homebridge-jci-hitachi-platform">View on GitHub</a>
+      </div>
+      <p class="fine">Free and open source. Works with Homebridge 1.6 or later, including 2.x.</p>
+    </div>
+    <div class="room" data-demo data-mode="cool" data-t='{&quot;st&quot;:{&quot;off&quot;:&quot;Off&quot;,&quot;cool&quot;:&quot;Cooling to {t}&quot;,&quot;heat&quot;:&quot;Heating to {t}&quot;,&quot;auto&quot;:&quot;Auto, set to {t}&quot;},&quot;now&quot;:&quot;Room {t}&quot;}'>
+      <svg class="unit" viewBox="0 0 480 250" role="img" aria-label="A wall-mounted air conditioner blowing air in the chosen mode.">
+      <rect class="unit-body" x="40" y="18" width="400" height="98" rx="28"/>
+      <rect class="unit-vent" x="84" y="88" width="312" height="11" rx="5.5"/>
+      <circle class="unit-led" cx="398" cy="46" r="5"/>
+      <g class="air">
+        <path d="M120 142q120 42 240 0"/>
+        <path d="M150 186q90 34 180 0"/>
+        <path d="M182 226q58 24 116 0"/>
+      </g>
+    </svg>
+      <div class="tile">
+        <div class="tile-head">
+          <span class="tile-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span>
+          <div class="tile-name"><strong>Living Room</strong><span data-status aria-live="polite"></span></div>
+          <span class="tile-now" data-now></span>
+        </div>
+        <div class="dial">
+          <button type="button" class="step" data-step="-1" aria-label="Lower the temperature">&minus;</button>
+          <output class="target" data-target>26°</output>
+          <button type="button" class="step" data-step="1" aria-label="Raise the temperature">+</button>
+        </div>
+        <fieldset class="seg">
+          <legend>Mode</legend>
+          <label><input type="radio" name="mode" value="off"><span>Off</span></label><label><input type="radio" name="mode" value="cool" checked><span>Cool</span></label><label><input type="radio" name="mode" value="heat"><span>Heat</span></label><label><input type="radio" name="mode" value="auto"><span>Auto</span></label>
+        </fieldset>
+      </div>
+      <p class="hint">Try it. Every air conditioner gets these controls in the Home app.</p>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-cloud">
+    <div class="intro">
+      <h2 id="h-cloud">Through the AirCloud Home cloud</h2>
+      <p>Hitachi&#x27;s Wi-Fi air conditioners are controlled through the AirCloud Home cloud, so the plugin signs in there with your account, just like the app. The cloud pushes every change to Homebridge as it happens, and if it goes down for maintenance the plugin reconnects on its own.</p>
+    </div>
+    <ol class="flow">
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M9.5 12 12 9.8l2.5 2.2M10.3 11.3v3.2h3.4v-3.2"/></svg></span><strong>Home app</strong><small>iPhone, iPad, Mac or HomePod</small></li><li class="link" aria-hidden="true"><span>HomeKit</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="6" rx="1.5"/><rect x="3" y="13" width="18" height="6" rx="1.5"/><path d="M7 8h.01M7 16h.01"/></svg></span><strong>Homebridge</strong><small>Runs the plugin</small></li><li class="link" aria-hidden="true"><span>Internet</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.1 4.7 4.7 0 0 0 7 18.5z"/></svg></span><strong>AirCloud Home</strong><small>Hitachi&#x27;s cloud service</small></li><li class="link" aria-hidden="true"><span>Internet</span></li>
+        <li class="node"><span class="node-icon"><svg viewBox="14 18 72 68" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="21.5" y="25.5" width="57" height="17" rx="5.5" stroke-width="4"/><path d="M30 36h32" stroke-width="3.6"/><path d="M28 53l-5 18M72 53l5 18" stroke-width="4.4"/><path d="M50 59v20M41.3 64l17.4 10M41.3 74l17.4-10" stroke-width="3"/></svg></span><strong>Air conditioner</strong><small>Its Wi-Fi module</small></li>
+    </ol>
+  </section>
+
+  <section class="band" aria-labelledby="h-feat">
+    <div class="intro">
+      <h2 id="h-feat">What you get in the Home app</h2>
+      <p>Each air conditioner shows up as one accessory, with everything the plugin can control grouped together.</p>
+    </div>
+    <ul class="feats"><li><h3>Power, mode and temperature</h3><p>Cool, heat and auto, within the temperature range your unit reports, in 1° steps.</p></li><li><h3>Fan speed</h3><p>Seven steps on the slider: auto, silent, low, medium, high, rapid and express.</p></li><li><h3>Humidity and air quality</h3><p>Indoor humidity and a PM2.5 air quality sensor, from the unit&#x27;s own readings.</p></li><li><h3>Frost wash and quick mode</h3><p>A notification when a frost wash is due, switches for frost wash and quick mode, and an automatic wash.</p></li><li><h3>Always up to date</h3><p>Changes made with the remote or the AirCloud Home app appear in the Home app within seconds.</p></li><li><h3>Siri, scenes and automations</h3><p>Units work like any other Home accessory, so you can ask Siri or cool the bedroom before you get home.</p></li></ul>
+  </section>
+
+  <section class="band" aria-labelledby="h-wash">
+    <div class="split">
+      <div class="intro">
+        <h2 id="h-wash">Frost wash, without having to remember <span class="chip">New in 1.5</span></h2>
+        <p>Hitachi units with frost wash (凍結洗淨) freeze and thaw the heat exchanger to rinse off dust, and tell you when it&#x27;s time. The plugin turns that reminder into a sensor the Home app can notify you about, and adds a switch to start a wash.</p>
+        <p>With automatic frost wash, you don&#x27;t have to act on the reminder at all: the wash starts by itself after you switch the unit off.</p>
+      </div>
+      <div class="move">
+        <h3>How automatic frost wash works</h3>
+        <p class="move-p">Each air conditioner gets its own 自動凍結洗淨 switch, so you choose which units wash themselves.</p>
+        <ol class="moves"><li><h3>Turn on 自動凍結洗淨</h3><p>Flip the switch on the air conditioner in the Home app.</p></li><li><h3>Switch the unit off as usual</h3><p>From the Home app, the remote or the AirCloud Home app. Nothing happens yet.</p></li><li><h3>Five minutes later</h3><p>If the unit is still off and asks for a wash, the plugin starts it. Turn the unit back on before then and it won&#x27;t wash.</p></li></ol>
+        <p class="back">The frost wash, quick mode and 自動凍結洗淨 switches need Homebridge to be signed in with the unit&#x27;s owner account.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-dev">
+    <div class="intro">
+      <h2 id="h-dev">For Hitachi air conditioners on AirCloud Home</h2>
+      <p>Every supported unit on your account shows up automatically. There&#x27;s nothing to enter per device.</p>
+    </div>
+    <dl class="devs"><div><dt>Air conditioners</dt><dd>Single and multi-split units registered in the AirCloud Home app.</dd></div><div><dt>Owner or shared account</dt><dd>A separate account with the units shared to it is the most reliable. The frost wash and quick mode switches need the owner account.</dd></div><div><dt>Dehumidifiers and air purifiers</dt><dd>Recognized on the account, but not shown in HomeKit yet.</dd></div><div><dt>Leave any unit out</dt><dd>Tick a device in the plugin settings to keep it out of HomeKit.</dd></div></dl>
+    <div class="unsupported">
+      <h3>Not supported: AirCloud Go</h3>
+      <p>AirCloud Go is a different Hitachi app with its own cloud service. Units registered only there don&#x27;t appear in this plugin.</p>
+    </div>
+  </section>
+
+  <section class="band" id="start" aria-labelledby="h-start">
+    <h2 id="h-start">Set it up in a few minutes</h2>
+    <ol class="steps"><li><h3>Install the plugin</h3><p>In the Homebridge UI, open Plugins, search for Jci Hitachi Platform and install it.</p></li><li><h3>Sign in</h3><p>Open the plugin settings and enter your AirCloud Home email and password. The device list shows every unit on the account.</p></li><li><h3>Restart Homebridge</h3><p>Your air conditioners appear in the Home app, on the bridge you already use.</p></li></ol>
+    <p class="fine">Requires Homebridge 1.6 or later (2.x supported) and Node.js 18, 20, 22 or 24. <a href="https://github.com/tasict/homebridge-jci-hitachi-platform#configuration">Full configuration reference</a></p>
+  </section>
+
+  <section class="band" aria-labelledby="h-support">
+    <div class="tipjar">
+      <img src="assets/boba.png" alt="" width="120" height="120">
+      <div>
+        <h2 id="h-support">Keep it free</h2>
+        <p>The plugin has no ads and no paid version. If it keeps your home comfortable, a boba or a small tip helps me keep up with changes to the AirCloud Home cloud and new Homebridge releases.</p>
+        <div class="actions">
+          <a class="btn" href="https://tasict.bobaboba.me"><img src="assets/boba.png" alt="" width="22" height="22">Buy me a boba</a>
+          <a class="tip" href="https://paypal.me/tasict">Tip with PayPal</a>
+        </div>
+        <p class="fine">Boba is paid by card. No PayPal account needed.</p>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <p>Made by tasict. Released under the Apache-2.0 license.</p>
+        <ul>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform">Source code</a></li>
+          <li><a href="https://www.npmjs.com/package/homebridge-jci-hitachi-platform">npm package</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/blob/master/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/tasict/homebridge-jci-hitachi-platform/issues">Report a problem</a></li>
+        </ul>
+      </div>
+      <ul class="langs"><li><a href="./" hreflang="en" lang="en" aria-current="page">English</a></li><li><a href="zh-TW/" hreflang="zh-TW" lang="zh-Hant-TW">繁體中文</a></li><li><a href="ja/" hreflang="ja" lang="ja">日本語</a></li></ul>
+    </div>
+    <p class="tm">Hitachi is a trademark of Hitachi, Ltd. AirCloud Home and AirCloud Go are trademarks of their respective owners. Apple Home and HomeKit are trademarks of Apple Inc. This plugin is unofficial and not affiliated with or endorsed by any of them.</p>
+  </div>
+</footer>
+<script src="assets/site.js"></script>
+</body>
+</html>

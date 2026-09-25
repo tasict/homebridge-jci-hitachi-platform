@@ -2,7 +2,7 @@
   "name": "homebridge-jci-hitachi-platform",
   "displayName": "Homebridge Jci Hitachi Platform",
   "version": "1.4.0",
-  "description": "Homebridge platform plugin providing HomeKit support for Jci Hitachi air conditioners.",
+  "description": "Homebridge platform plugin providing HomeKit support for Jci Hitachi (Hitachi Taiwan) air conditioners on the AirCloud Home cloud.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -11,11 +11,17 @@
   "bugs": {
     "url": "https://github.com/tasict/homebridge-jci-hitachi-platform/issues"
   },
-  "homepage": "https://github.com/tasict/homebridge-jci-hitachi-platform#readme",
-  "funding": {
-    "type": "github",
-    "url": "https://PayPal.Me/tasict"
-  },
+  "homepage": "https://tasict.github.io/homebridge-jci-hitachi-platform/",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://tasict.bobaboba.me"
+    },
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/tasict"
+    }
+  ],
   "engines": {
     "homebridge": "^1.6.0 || ^2.0.0-beta.0",
     "node": "^18.20.4 || ^20.15.1 || ^22.0.0 || ^24.0.0"
@@ -23,8 +29,10 @@
   "main": "dist/index.js",
   "files": [
     "dist",
+    "!dist/test.*",
     "homebridge-ui",
-    "config.schema.json"
+    "config.schema.json",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "clean": "rimraf ./dist",
@@ -43,7 +51,10 @@
     "ac",
     "hitachi",
     "hitachi tw",
-    "air conditioner"
+    "air conditioner",
+    "aircloud",
+    "aircloud home",
+    "supports-hap"
   ],
   "dependencies": {
     "@aws-sdk/util-utf8-browser": "^3.259.0",
