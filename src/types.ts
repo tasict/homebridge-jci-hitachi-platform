@@ -7,8 +7,9 @@ export interface JciHitachiPlatformConfig extends PlatformConfig {
   email: string;
   password: string;
   debugMode: boolean;
-  // Trigger a frost wash (凍結洗淨) automatically when a device turns off while
-  // its clean notification is active. Host-account only.
+  // Initial state of each device's 自動凍結洗淨 switch (host account only): start a
+  // frost wash once a device has been off for AUTO_CLEAN_DELAY while its clean
+  // notification is active. The switch state in HomeKit wins once it has been set.
   autoCleanWhenPowerOff?: boolean;
   // ThingNames that must not be exposed to HomeKit. Managed via the device list
   // in the plugin settings UI.
@@ -17,6 +18,9 @@ export interface JciHitachiPlatformConfig extends PlatformConfig {
 
 export interface JciHitachiAccessoryContext {
   device: AWSThings;
+  // State of the 自動凍結洗淨 switch. Undefined until it is first toggled, in which
+  // case autoCleanWhenPowerOff from the config applies.
+  autoClean?: boolean;
 }
 
 export abstract class JciHitachiAccessory {

@@ -37,8 +37,8 @@
         }
       },
       "autoCleanWhenPowerOff": {
-        "title": "Auto Frost Wash (凍結洗淨) on Power Off",
-        "description": "Automatically start a frost wash when a device is turned off while it reports that cleaning is recommended. Only works when the plugin is logged in with the host (owner) account; shared secondary accounts cannot trigger it.",
+        "title": "Auto Frost Wash (自動凍結洗淨) On by Default",
+        "description": "Initial state of each device's 自動凍結洗淨 switch in HomeKit. While the switch is on, a frost wash starts once the device has been off for 5 minutes and reports that cleaning is recommended. After the switch has been toggled in the Home app, the switch wins. Host (owner) account only.",
         "type": "boolean",
         "default": false
       },

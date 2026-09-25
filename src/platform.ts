@@ -395,6 +395,11 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
     }
   }
 
+  /** Writes a changed accessory context (e.g. the 自動凍結洗淨 switch) to the Homebridge cache. */
+  public saveAccessory(accessory: PlatformAccessory<JciHitachiAccessoryContext>) {
+    this.api.updatePlatformAccessories([accessory]);
+  }
+
   protected createJciHitachiAccessory(
     deviceType: number,
     platform: JciHitachiPlatform,

@@ -14,3 +14,7 @@ export const MAX_LOGIN_RETRY_DELAY = 600 * 1000;
 // 60 sec = 1 min
 export const DEVICE_STATUS_REFRESH_INTERVAL = 60 * 1000;
 
+// How long a device must stay off before the automatic 凍結洗淨 starts, so a unit
+// switched straight back on never begins washing. 5 min.
+export const AUTO_CLEAN_DELAY = 5 * 60 * 1000;
+

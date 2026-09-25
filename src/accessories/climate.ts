@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback, CharacteristicEventTypes } from 'homebridge';
 import JciHitachiPlatform from '../platform';
-import { DEVICE_STATUS_REFRESH_INTERVAL } from '../settings';
+import { AUTO_CLEAN_DELAY, DEVICE_STATUS_REFRESH_INTERVAL } from '../settings';
 import { JciHitachiAccessoryContext, JciHitachiAccessory} from '../types';
 import { AWSThings } from '../jci-hitachi-models';
 
@@ -36,6 +36,9 @@ enum ClimateMode {
   Heat = 4,
 }
 
+// Subtype of the 自動凍結洗淨 switch. Not a ClimateCommandType: the switch is local to
+// the plugin and never sent to the device.
+const AUTO_CLEAN_SUBTYPE = 'AutoClean';
 
 
 /**
@@ -51,6 +54,9 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   // the auto frost wash. Undefined until the first status arrives, so a device
   // that is already off at startup never triggers a wash.
   private lastSwitchOn: number | undefined;
+
+  // Pending automatic 凍結洗淨, started when the device reports it turned off.
+  private _autoCleanTimeout: NodeJS.Timeout | undefined;
 
   // Temperature range currently applied to the threshold characteristics. The real
   // range arrives asynchronously with the registration payload, after the
@@ -204,6 +210,18 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       this.services['CleanSwitch'].addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
       this.services['CleanSwitch'].setCharacteristic(this.platform.Characteristic.ConfiguredName, buttonCleanSwitch);
 
+      const buttonAutoClean = '自動凍結洗淨';
+
+      this.services['AutoClean'] = this.accessory.getServiceById(this.platform.Service.Switch, AUTO_CLEAN_SUBTYPE) || this.accessory.addService(this.platform.Service.Switch,  buttonAutoClean, AUTO_CLEAN_SUBTYPE);
+
+      this.services['AutoClean'].setCharacteristic(this.platform.Characteristic.Name, buttonAutoClean);
+      this.services['AutoClean'].getCharacteristic(this.platform.Characteristic.On)
+        .onSet(this.setAutoClean.bind(this))
+        .onGet(this.getAutoClean.bind(this));
+
+      this.services['AutoClean'].addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+      this.services['AutoClean'].setCharacteristic(this.platform.Characteristic.ConfiguredName, buttonAutoClean);
+
 
 
     }
@@ -265,6 +283,7 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       clearInterval(this._refreshInterval);
       this._refreshInterval = undefined;
     }
+    this.cancelAutoClean();
   }
 
   async getStatus(actionName:string):Promise<Object|undefined>{
@@ -325,13 +344,34 @@ export default class ClimateAccessory extends JciHitachiAccessory{
     return this.accessory.context.device.CleanNotification;
   }
 
+  private get autoCleanEnabled(): boolean {
+    return this.accessory.context.autoClean ?? !!this.platform.platformConfig.autoCleanWhenPowerOff;
+  }
+
+  async setAutoClean(value: CharacteristicValue) {
+
+    this.platform.log.debug(`Accessory: setAutoClean() for device '${this.accessory.displayName}' to ${value}`);
+
+    this.accessory.context.autoClean = !!value;
+    this.platform.saveAccessory(this.accessory);
+
+    if (!value) {
+      this.cancelAutoClean();
+    }
+  }
+
+  async getAutoClean():Promise<CharacteristicValue> {
+    return this.autoCleanEnabled;
+  }
+
   /**
    * Auto frost wash (凍結洗淨): when the device reports an on -> off transition while
-   * its clean notification is active, trigger CleanSwitch automatically.
+   * the 自動凍結洗淨 switch is on, wait AUTO_CLEAN_DELAY and then trigger CleanSwitch if
+   * the device is still off and its clean notification is active.
    *
    * This runs on device-reported state (MQTT status pushes), so it covers a
-   * power-off from HomeKit, the IR remote and the vendor app alike, and only fires
-   * once the unit has confirmed it is off - no race with the power-off command.
+   * power-off from HomeKit, the IR remote and the vendor app alike. Turning the
+   * device back on during the delay cancels the wash.
    */
   private checkAutoClean() {
 
@@ -339,16 +379,12 @@ export default class ClimateAccessory extends JciHitachiAccessory{
     const turnedOff = this.lastSwitchOn === 1 && switchOn === 0;
     this.lastSwitchOn = switchOn;
 
-    if (!turnedOff || !this.platform.platformConfig.autoCleanWhenPowerOff) {
+    if (switchOn) {
+      this.cancelAutoClean();
       return;
     }
 
-    if (!this.accessory.context.device.CleanNotification) {
-      return;
-    }
-
-    if (this.accessory.context.device.CleanSwitch) {
-      // A frost wash is already running; don't send the command again.
+    if (!turnedOff || !this.autoCleanEnabled) {
       return;
     }
 
@@ -360,11 +396,48 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       return;
     }
 
-    this.platform.log.info(`Accessory: '${this.accessory.displayName}' turned off with a pending `
-      + 'clean notification; triggering 凍結洗淨 automatically.');
+    this.cancelAutoClean();
+    this._autoCleanTimeout = setTimeout(() => {
+      this._autoCleanTimeout = undefined;
+      this.runAutoClean();
+    }, AUTO_CLEAN_DELAY);
+
+    this.platform.log.debug(`Accessory: '${this.accessory.displayName}' turned off; checking for a pending `
+      + `凍結洗淨 in ${AUTO_CLEAN_DELAY / 60000} minutes.`);
+  }
+
+  private runAutoClean() {
+
+    const device = this.accessory.context.device;
+
+    if (!this.autoCleanEnabled || device.SwitchOn) {
+      return;
+    }
+
+    if (!device.CleanNotification) {
+      this.platform.log.debug(`Accessory: '${this.accessory.displayName}' has no pending clean notification; `
+        + 'auto 凍結洗淨 not needed.');
+      return;
+    }
+
+    if (device.CleanSwitch) {
+      // A frost wash is already running; don't send the command again.
+      return;
+    }
+
+    this.platform.log.info(`Accessory: '${this.accessory.displayName}' has been off for `
+      + `${AUTO_CLEAN_DELAY / 60000} minutes with a pending clean notification; triggering 凍結洗淨 automatically.`);
 
     this.setStatus(ClimateCommandType.CleanSwitch, 1);
     this.services['CleanSwitch']?.updateCharacteristic(this.platform.Characteristic.On, true);
+  }
+
+  private cancelAutoClean() {
+    if (this._autoCleanTimeout) {
+      clearTimeout(this._autoCleanTimeout);
+      this._autoCleanTimeout = undefined;
+      this.platform.log.debug(`Accessory: '${this.accessory.displayName}' auto 凍結洗淨 cancelled.`);
+    }
   }
 
 
