@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-23
+
+### Added
+
+- Choose what each air conditioner shows in the Home app ([#12](https://github.com/tasict/homebridge-jci-hitachi-platform/issues/12)): the frost wash sensor and switches (`showFrostWash`), the humidity sensor (`showHumiditySensor`) and the air quality sensor (`showAirQualitySensor`) can each be turned off from the new 在「家庭」App 顯示 section of the settings page. All stay on by default; hiding frost wash also stops the automatic frost wash.
+
+### Changed
+
+- Updated dependencies: `aws-iot-device-sdk-v2` 1.28, `axios` 1.20 and `@homebridge/plugin-ui-utils` 2.2.6; the plugin is now built against Homebridge 2.4 types with TypeScript 6.0, and linted with ESLint 10 (flat config).
+
+### Removed
+
+- Unused or replaceable dependencies `uuid`, `util`, `tslog` and `@aws-sdk/util-utf8-browser` (no longer maintained); the plugin now relies on Node's built-ins for these.
+
 ## [1.5.0] - 2026-09-25
 
 ### Added
@@ -164,7 +178,8 @@ First tagged release.
 
 - Connection issue from the initial version.
 
-[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.3.0...v1.3.1
