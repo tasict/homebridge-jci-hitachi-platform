@@ -35,7 +35,7 @@
     "feats": [
       ["Power, mode and temperature", "Cool, heat and auto, within the temperature range your unit reports, in 1° steps."],
       ["Fan speed", "Seven steps on the slider: auto, silent, low, medium, high, rapid and express."],
-      ["Humidity and air quality", "Indoor humidity and a PM2.5 air quality sensor, from the unit's own readings."],
+      ["Humidity and air quality", "Indoor humidity and a PM2.5 air quality sensor, from the unit's own readings. Hide them on any unit that doesn't need them."],
       ["Frost wash and quick mode", "A notification when a frost wash is due, switches for frost wash and quick mode, and an automatic wash."],
       ["Always up to date", "Changes made with the remote or the AirCloud Home app appear in the Home app within seconds."],
       ["Siri, scenes and automations", "Units work like any other Home accessory, so you can ask Siri or cool the bedroom before you get home."]
@@ -58,14 +58,14 @@
       ["Air conditioners", "Single and multi-split units registered in the AirCloud Home app."],
       ["Owner or shared account", "A separate account with the units shared to it is the most reliable. The frost wash and quick mode switches need the owner account."],
       ["Dehumidifiers and air purifiers", "Recognized on the account, but not shown in HomeKit yet."],
-      ["Leave any unit out", "Tick a device in the plugin settings to keep it out of HomeKit."]
+      ["Only what you need", "In the plugin settings, switch a unit off to keep it out of HomeKit, or hide just its frost wash, humidity or air quality items."]
     ],
     "unsup_h3": "Not supported: AirCloud Go",
     "unsup_p": "AirCloud Go is a different Hitachi app with its own cloud service. Units registered only there don't appear in this plugin.",
     "start_h2": "Set it up in a few minutes",
     "steps": [
       ["Install the plugin", "In the Homebridge UI, open Plugins, search for Jci Hitachi Platform and install it."],
-      ["Sign in", "Open the plugin settings and enter your AirCloud Home email and password. The device list shows every unit on the account."],
+      ["Sign in", "Open the plugin settings and enter your AirCloud Home email and password. The device list shows every unit on the account, and the page is in English, Traditional Chinese or Japanese, following your Homebridge UI language."],
       ["Restart Homebridge", "Your air conditioners appear in the Home app, on the bridge you already use."]
     ],
     "start_note": "Requires Homebridge 1.6 or later (2.x supported) and Node.js 18, 20, 22 or 24.",
@@ -117,7 +117,7 @@
     "feats": [
       ["開關、模式與溫度", "冷氣、暖氣和自動，溫度範圍依機器回報，每次調整 1 度。"],
       ["風速", "滑桿分七段：自動、靜音、弱、中、強、急速、超急速。"],
-      ["濕度與空氣品質", "室內濕度和 PM2.5 空氣品質感應器，數值來自冷氣本身。"],
+      ["濕度與空氣品質", "室內濕度和 PM2.5 空氣品質感應器，數值來自冷氣本身。用不到的話，每台都可以分別隱藏。"],
       ["凍結洗淨與快速運轉", "該洗淨時會通知你，還有凍結洗淨和快速運轉的開關，以及自動凍結洗淨。"],
       ["狀態即時同步", "用遙控器或 AirCloud Home App 操作，幾秒內就會反映在「家庭」App。"],
       ["Siri、場景與自動化", "冷氣就像其他「家庭」配件，可以請 Siri 開冷氣，或在到家前先讓臥室涼下來。"]
@@ -140,14 +140,14 @@
       ["冷氣", "在 AirCloud Home App 註冊的單機與一對多冷氣。"],
       ["主帳號或分享帳號", "另外建立一個帳號、再把冷氣分享過去最穩定。凍結洗淨與快速運轉開關需要主帳號。"],
       ["除濕機與空氣清淨機", "會出現在裝置清單，但還不會加入 HomeKit。"],
-      ["排除任何一台", "在外掛設定勾選裝置，就不會加入 HomeKit。"]
+      ["只顯示需要的", "在外掛設定關掉某台裝置，它就不會加入 HomeKit；也可以只隱藏它的凍結洗淨、濕度或空氣品質。"]
     ],
     "unsup_h3": "不支援：AirCloud Go",
     "unsup_p": "AirCloud Go 是日立另一個 App，使用不同的雲端服務。只註冊在那裡的冷氣不會出現在這個外掛。",
     "start_h2": "幾分鐘就能設定好",
     "steps": [
       ["安裝外掛", "在 Homebridge UI 開啟外掛頁面，搜尋 Jci Hitachi Platform 並安裝。"],
-      ["登入帳號", "開啟外掛設定，輸入 AirCloud Home 的 Email 和密碼。裝置清單會列出帳號裡的每台冷氣。"],
+      ["登入帳號", "開啟外掛設定，輸入 AirCloud Home 的 Email 和密碼。裝置清單會列出帳號裡的每台冷氣；設定頁會依 Homebridge UI 的語言，顯示繁體中文、英文或日文。"],
       ["重新啟動 Homebridge", "冷氣會出現在「家庭」App，就在你原本使用的橋接器上。"]
     ],
     "start_note": "需要 Homebridge 1.6 以上（支援 2.x），以及 Node.js 18、20、22 或 24。",
@@ -199,7 +199,7 @@
     "feats": [
       ["電源・モード・温度", "冷房、暖房、自動。温度はエアコンが報告する範囲内で 1 度ずつ設定できます。"],
       ["風量", "スライダーで 7 段階：自動、静音、弱、中、強、急速、超急速。"],
-      ["湿度と空気質", "室内の湿度と PM2.5 の空気質センサー。値はエアコン自身の計測です。"],
+      ["湿度と空気質", "室内の湿度と PM2.5 の空気質センサー。値はエアコン自身の計測です。必要ないエアコンでは個別に非表示にできます。"],
       ["凍結洗浄と快速運転", "洗浄の時期をお知らせし、凍結洗浄と快速運転のスイッチ、自動凍結洗浄も使えます。"],
       ["状態をすぐに反映", "リモコンや AirCloud Home アプリでの操作が、数秒で「ホーム」App に反映されます。"],
       ["Siri、シーン、オートメーション", "ほかの「ホーム」アクセサリと同じように使えるので、Siri に頼んだり、帰宅前に寝室を冷やしたりできます。"]
@@ -222,14 +222,14 @@
       ["エアコン", "AirCloud Home アプリに登録されたシングル、マルチのエアコン。"],
       ["オーナーまたは共有アカウント", "別のアカウントを作ってエアコンを共有するのがいちばん安定します。凍結洗浄と快速運転のスイッチにはオーナーアカウントが必要です。"],
       ["除湿機と空気清浄機", "デバイス一覧には表示されますが、HomeKit にはまだ追加されません。"],
-      ["好きな機器を除外", "プラグイン設定でデバイスにチェックを入れると、HomeKit に追加されません。"]
+      ["必要なものだけ", "プラグイン設定でデバイスをオフにすると、HomeKit に追加されません。凍結洗浄、湿度、空気質だけを非表示にすることもできます。"]
     ],
     "unsup_h3": "非対応：AirCloud Go",
     "unsup_p": "AirCloud Go は日立の別のアプリで、クラウドサービスも異なります。そちらにだけ登録されたエアコンは、このプラグインには表示されません。",
     "start_h2": "数分でセットアップ",
     "steps": [
       ["プラグインをインストール", "Homebridge UI のプラグイン画面で Jci Hitachi Platform を検索してインストールします。"],
-      ["サインイン", "プラグイン設定を開き、AirCloud Home のメールアドレスとパスワードを入力します。デバイス一覧にアカウントのエアコンがすべて並びます。"],
+      ["サインイン", "プラグイン設定を開き、AirCloud Home のメールアドレスとパスワードを入力します。デバイス一覧にアカウントのエアコンがすべて並びます。設定画面は Homebridge UI の言語に合わせて、日本語、英語、繁体字中国語で表示されます。"],
       ["Homebridge を再起動", "今お使いのブリッジに、エアコンが「ホーム」App に表示されます。"]
     ],
     "start_note": "Homebridge 1.6 以降（2.x に対応）と、Node.js 18、20、22、24 のいずれかが必要です。",

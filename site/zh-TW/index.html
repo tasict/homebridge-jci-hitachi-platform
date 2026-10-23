@@ -95,7 +95,7 @@
       <h2 id="h-feat">在「家庭」App 裡能做什麼</h2>
       <p>每台冷氣顯示為一個配件，外掛能控制的功能都整理在一起。</p>
     </div>
-    <ul class="feats"><li><h3>開關、模式與溫度</h3><p>冷氣、暖氣和自動，溫度範圍依機器回報，每次調整 1 度。</p></li><li><h3>風速</h3><p>滑桿分七段：自動、靜音、弱、中、強、急速、超急速。</p></li><li><h3>濕度與空氣品質</h3><p>室內濕度和 PM2.5 空氣品質感應器，數值來自冷氣本身。</p></li><li><h3>凍結洗淨與快速運轉</h3><p>該洗淨時會通知你，還有凍結洗淨和快速運轉的開關，以及自動凍結洗淨。</p></li><li><h3>狀態即時同步</h3><p>用遙控器或 AirCloud Home App 操作，幾秒內就會反映在「家庭」App。</p></li><li><h3>Siri、場景與自動化</h3><p>冷氣就像其他「家庭」配件，可以請 Siri 開冷氣，或在到家前先讓臥室涼下來。</p></li></ul>
+    <ul class="feats"><li><h3>開關、模式與溫度</h3><p>冷氣、暖氣和自動，溫度範圍依機器回報，每次調整 1 度。</p></li><li><h3>風速</h3><p>滑桿分七段：自動、靜音、弱、中、強、急速、超急速。</p></li><li><h3>濕度與空氣品質</h3><p>室內濕度和 PM2.5 空氣品質感應器，數值來自冷氣本身。用不到的話，每台都可以分別隱藏。</p></li><li><h3>凍結洗淨與快速運轉</h3><p>該洗淨時會通知你，還有凍結洗淨和快速運轉的開關，以及自動凍結洗淨。</p></li><li><h3>狀態即時同步</h3><p>用遙控器或 AirCloud Home App 操作，幾秒內就會反映在「家庭」App。</p></li><li><h3>Siri、場景與自動化</h3><p>冷氣就像其他「家庭」配件，可以請 Siri 開冷氣，或在到家前先讓臥室涼下來。</p></li></ul>
   </section>
 
   <section class="band" aria-labelledby="h-wash">
@@ -119,7 +119,7 @@
       <h2 id="h-dev">適用 AirCloud Home 上的日立冷氣</h2>
       <p>帳號裡支援的冷氣都會自動出現，不需要一台一台設定。</p>
     </div>
-    <dl class="devs"><div><dt>冷氣</dt><dd>在 AirCloud Home App 註冊的單機與一對多冷氣。</dd></div><div><dt>主帳號或分享帳號</dt><dd>另外建立一個帳號、再把冷氣分享過去最穩定。凍結洗淨與快速運轉開關需要主帳號。</dd></div><div><dt>除濕機與空氣清淨機</dt><dd>會出現在裝置清單，但還不會加入 HomeKit。</dd></div><div><dt>排除任何一台</dt><dd>在外掛設定勾選裝置，就不會加入 HomeKit。</dd></div></dl>
+    <dl class="devs"><div><dt>冷氣</dt><dd>在 AirCloud Home App 註冊的單機與一對多冷氣。</dd></div><div><dt>主帳號或分享帳號</dt><dd>另外建立一個帳號、再把冷氣分享過去最穩定。凍結洗淨與快速運轉開關需要主帳號。</dd></div><div><dt>除濕機與空氣清淨機</dt><dd>會出現在裝置清單，但還不會加入 HomeKit。</dd></div><div><dt>只顯示需要的</dt><dd>在外掛設定關掉某台裝置，它就不會加入 HomeKit；也可以只隱藏它的凍結洗淨、濕度或空氣品質。</dd></div></dl>
     <div class="unsupported">
       <h3>不支援：AirCloud Go</h3>
       <p>AirCloud Go 是日立另一個 App，使用不同的雲端服務。只註冊在那裡的冷氣不會出現在這個外掛。</p>
@@ -128,7 +128,7 @@
 
   <section class="band" id="start" aria-labelledby="h-start">
     <h2 id="h-start">幾分鐘就能設定好</h2>
-    <ol class="steps"><li><h3>安裝外掛</h3><p>在 Homebridge UI 開啟外掛頁面，搜尋 Jci Hitachi Platform 並安裝。</p></li><li><h3>登入帳號</h3><p>開啟外掛設定，輸入 AirCloud Home 的 Email 和密碼。裝置清單會列出帳號裡的每台冷氣。</p></li><li><h3>重新啟動 Homebridge</h3><p>冷氣會出現在「家庭」App，就在你原本使用的橋接器上。</p></li></ol>
+    <ol class="steps"><li><h3>安裝外掛</h3><p>在 Homebridge UI 開啟外掛頁面，搜尋 Jci Hitachi Platform 並安裝。</p></li><li><h3>登入帳號</h3><p>開啟外掛設定，輸入 AirCloud Home 的 Email 和密碼。裝置清單會列出帳號裡的每台冷氣；設定頁會依 Homebridge UI 的語言，顯示繁體中文、英文或日文。</p></li><li><h3>重新啟動 Homebridge</h3><p>冷氣會出現在「家庭」App，就在你原本使用的橋接器上。</p></li></ol>
     <p class="fine">需要 Homebridge 1.6 以上（支援 2.x），以及 Node.js 18、20、22 或 24。 <a href="https://github.com/tasict/homebridge-jci-hitachi-platform#configuration">完整設定說明（英文）</a></p>
   </section>
 
