@@ -42,6 +42,24 @@
         "type": "boolean",
         "default": false
       },
+      "showFrostWash": {
+        "title": "Show Frost Wash (凍結洗淨) in Home",
+        "description": "Expose the 凍結洗淨通知 sensor and the 凍結洗淨 / 自動凍結洗淨 switches. When off, they are removed from HomeKit and the automatic frost wash does not run.",
+        "type": "boolean",
+        "default": true
+      },
+      "showHumiditySensor": {
+        "title": "Show Humidity Sensor in Home",
+        "description": "Expose the indoor humidity reported by each air conditioner.",
+        "type": "boolean",
+        "default": true
+      },
+      "showAirQualitySensor": {
+        "title": "Show Air Quality Sensor in Home",
+        "description": "Expose the air quality level and PM2.5 density reported by each air conditioner.",
+        "type": "boolean",
+        "default": true
+      },
       "debugMode": {
         "title": "Debug Mode",
         "description": "When enabled, debug messages will be written to the log.",
@@ -70,6 +88,15 @@
           "key": "password",
           "type": "password"
         }
+      ]
+    },
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        "showFrostWash",
+        "showHumiditySensor",
+        "showAirQualitySensor"
       ]
     },
     {

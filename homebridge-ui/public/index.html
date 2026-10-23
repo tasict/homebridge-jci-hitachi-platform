@@ -1,6 +1,6 @@
 <!-- Custom settings UI. The schema-driven form is NOT shown: every field is
      rendered here so the page follows the task flow (account, devices,
-     housekeeping) and the support footer can sit at the very bottom. When
+     what shows in Home, housekeeping) and the support footer can sit at the very bottom. When
      adding a new config field, add it to this page AND to config.schema.json.
      All writes are read-modify-write against getPluginConfig() so fields the
      page doesn't own (e.g. Homebridge's _bridge child-bridge block) are kept. -->
@@ -26,6 +26,32 @@
   .jhp-sw input:checked + .jhp-track { background: #0d6efd; }
   .jhp-sw input:checked + .jhp-track::after { transform: translateX(16px); }
   .jhp-sw input:focus-visible + .jhp-track { outline: 2px solid #0d6efd; outline-offset: 2px; }
+  .jhp-sw input:disabled { cursor: not-allowed; }
+  .jhp-sw input:disabled + .jhp-track { opacity: 0.45; }
+  .jhp-opt:has(input:disabled) :is(.jhp-opt-title, .jhp-opt-desc) { opacity: 0.55; }
+  .jhp-opt-note { font-size: 12px; line-height: 1.5; margin-top: 4px; color: #b02a37; }
+  body.dark-mode .jhp-opt-note { color: #ea868f; }
+  /* "Shown in Home" tiles echo Home app accessory tiles. A hidden service turns
+     into a dashed, faded outline: the empty slot it leaves in the Home app. */
+  .jhp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .jhp-tile { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 12px; border: 1px solid #dee2e6; border-radius: 12px; cursor: pointer; transition: border-color 0.15s; }
+  .jhp-tile:hover { border-color: #adb5bd; }
+  .jhp-tile-head { display: flex; align-items: center; justify-content: space-between; }
+  .jhp-tile-icon { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 110, 253, 0.1); color: #0d6efd; transition: background-color 0.15s, color 0.15s; }
+  .jhp-tile-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .jhp-tile-title { display: block; font-weight: 600; font-size: 13px; }
+  .jhp-tile-desc { display: block; font-size: 12px; opacity: 0.7; line-height: 1.5; margin-top: 2px; }
+  .jhp-tile-text { transition: opacity 0.15s; }
+  .jhp-tile:has(input:not(:checked)) { border-style: dashed; }
+  .jhp-tile:has(input:not(:checked)) .jhp-tile-icon { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
+  .jhp-tile:has(input:not(:checked)) .jhp-tile-text { opacity: 0.55; }
+  body.dark-mode .jhp-tile { border-color: #3e4144; }
+  body.dark-mode .jhp-tile:hover { border-color: #6c757d; }
+  body.dark-mode .jhp-tile-icon { background: rgba(110, 168, 254, 0.15); color: #6ea8fe; }
+  body.dark-mode .jhp-tile:has(input:not(:checked)) .jhp-tile-icon { background: rgba(173, 181, 189, 0.12); color: #adb5bd; }
+  @media (prefers-reduced-motion: reduce) {
+    .jhp-tile, .jhp-tile-icon, .jhp-tile-text, .jhp-sw .jhp-track, .jhp-sw .jhp-track::after { transition: none; }
+  }
   .jhp-fields { display: flex; flex-wrap: wrap; gap: 10px 16px; }
   .jhp-fields > div { flex: 1 1 220px; min-width: 0; }
   .jhp-pw { display: flex; gap: 6px; }
@@ -95,7 +121,68 @@
   </div>
 </div>
 
-<!-- 3. Advanced: housekeeping nobody touches day-to-day. -->
+<!-- 3. What each air conditioner shows in the Home app (showFrostWash,
+     showHumiditySensor, showAirQualitySensor; all default to shown). -->
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">在「家庭」App 顯示</h5>
+    <p class="card-text text-muted small mb-2">
+      冷氣的電源、模式、溫度與風速一律會顯示。下列附加項目套用到每一台冷氣，用不到的可以關閉，讓「家庭」App 更簡潔。
+    </p>
+    <div class="jhp-tiles">
+      <label class="jhp-tile" for="jhpShowFrostWash">
+        <span class="jhp-tile-head">
+          <span class="jhp-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>
+          </span>
+          <span class="jhp-sw">
+            <input type="checkbox" id="jhpShowFrostWash" data-show="showFrostWash" aria-labelledby="jhpShowFrostWashTitle" aria-describedby="jhpShowFrostWashDesc">
+            <span class="jhp-track"></span>
+          </span>
+        </span>
+        <span class="jhp-tile-text">
+          <span class="jhp-tile-title" id="jhpShowFrostWashTitle">凍結洗淨</span>
+          <span class="jhp-tile-desc" id="jhpShowFrostWashDesc">「凍結洗淨通知」感測器，以及主帳號才有的「凍結洗淨」、「自動凍結洗淨」開關。</span>
+        </span>
+      </label>
+      <label class="jhp-tile" for="jhpShowHumidity">
+        <span class="jhp-tile-head">
+          <span class="jhp-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3c3.2 3.8 6 7.2 6 11a6 6 0 0 1-12 0c0-3.8 2.8-7.2 6-11z"/></svg>
+          </span>
+          <span class="jhp-sw">
+            <input type="checkbox" id="jhpShowHumidity" data-show="showHumiditySensor" aria-labelledby="jhpShowHumidityTitle" aria-describedby="jhpShowHumidityDesc">
+            <span class="jhp-track"></span>
+          </span>
+        </span>
+        <span class="jhp-tile-text">
+          <span class="jhp-tile-title" id="jhpShowHumidityTitle">濕度感測器</span>
+          <span class="jhp-tile-desc" id="jhpShowHumidityDesc">冷氣量測到的室內相對濕度。</span>
+        </span>
+      </label>
+      <label class="jhp-tile" for="jhpShowAirQuality">
+        <span class="jhp-tile-head">
+          <span class="jhp-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5M3 13h15a2.5 2.5 0 1 1-2.5 2.5M3 17h7"/></svg>
+          </span>
+          <span class="jhp-sw">
+            <input type="checkbox" id="jhpShowAirQuality" data-show="showAirQualitySensor" aria-labelledby="jhpShowAirQualityTitle" aria-describedby="jhpShowAirQualityDesc">
+            <span class="jhp-track"></span>
+          </span>
+        </span>
+        <span class="jhp-tile-text">
+          <span class="jhp-tile-title" id="jhpShowAirQualityTitle">空氣品質感測器</span>
+          <span class="jhp-tile-desc" id="jhpShowAirQualityDesc">依 PM2.5 判斷的空氣品質等級，以及 PM2.5 濃度。</span>
+        </span>
+      </label>
+    </div>
+    <p class="card-text text-muted small mt-2 mb-0">
+      儲存並重啟 Homebridge 後，關閉的項目會從「家庭」App 移除，用到它的自動化也會跟著失效；之後再開啟時，需要重新設定這些自動化。
+    </p>
+  </div>
+</div>
+
+<!-- 4. Advanced: housekeeping nobody touches day-to-day. -->
 <div class="card mb-3">
   <div class="card-body py-2">
     <button type="button" id="jhpAdvToggle" class="jhp-adv-toggle d-flex align-items-center" aria-expanded="false" aria-controls="jhpAdvBody">
@@ -114,6 +201,7 @@
             <div class="jhp-opt-desc">
               用主帳號登入時，每台冷氣在「家庭」App 裡都有「自動凍結洗淨」開關：開啟後，冷氣關機滿 5 分鐘、且機器提示需要洗淨時，會自動開始凍結洗淨。這個選項只決定開關第一次出現時的狀態，之後以「家庭」App 裡的開關為準。
             </div>
+            <div class="jhp-opt-note" id="jhpAutoCleanNote" hidden>「凍結洗淨」目前設為不在「家庭」App 顯示，自動凍結洗淨不會執行。</div>
           </div>
           <label class="jhp-sw" title="「自動凍結洗淨」預設開啟">
             <input type="checkbox" id="jhpAutoClean" aria-label="「自動凍結洗淨」預設開啟">
@@ -163,6 +251,10 @@
   const nameInput = document.getElementById('jhpName');
   const autoCleanInput = document.getElementById('jhpAutoClean');
   const debugInput = document.getElementById('jhpDebug');
+  const autoCleanNote = document.getElementById('jhpAutoCleanNote');
+  const frostWashInput = document.getElementById('jhpShowFrostWash');
+  // "Shown in Home" switches; data-show holds the config field they write.
+  const showInputs = Array.from(document.querySelectorAll('input[data-show]'));
   const statusEl = document.getElementById('deviceStatus');
   const tableEl = document.getElementById('deviceTable');
   const rowsEl = document.getElementById('deviceRows');
@@ -192,9 +284,19 @@
       config.ignoredDevices = Array.from(ignored);
       config.autoCleanWhenPowerOff = autoCleanInput.checked;
       config.debugMode = debugInput.checked;
+      for (const input of showInputs) {
+        config[input.dataset.show] = input.checked;
+      }
       await homebridge.updatePluginConfig(configs);
     }).catch((e) => homebridge.toast.error(String(e), '更新設定失敗'));
     return pendingWrite;
+  }
+
+  // The automatic wash runs through the frost wash switches, so its default is
+  // moot while they are hidden. The stored value is kept for when they return.
+  function updateAutoCleanAvailability() {
+    autoCleanInput.disabled = !frostWashInput.checked;
+    autoCleanNote.hidden = frostWashInput.checked;
   }
 
   function renderDevices(devices) {
@@ -285,6 +387,10 @@
   nameInput.value = typeof config.name === 'string' && config.name !== '' ? config.name : DEFAULT_NAME;
   autoCleanInput.checked = config.autoCleanWhenPowerOff === true;
   debugInput.checked = config.debugMode === true;
+  for (const input of showInputs) {
+    input.checked = config[input.dataset.show] !== false;
+  }
+  updateAutoCleanAvailability();
   for (const thingName of config.ignoredDevices || []) {
     if (typeof thingName === 'string' && thingName !== '') {
       ignored.add(thingName);
@@ -294,9 +400,10 @@
   for (const input of [emailInput, passwordInput, nameInput]) {
     input.addEventListener('input', sync);
   }
-  for (const input of [autoCleanInput, debugInput]) {
+  for (const input of [autoCleanInput, debugInput, ...showInputs]) {
     input.addEventListener('change', sync);
   }
+  frostWashInput.addEventListener('change', updateAutoCleanAvailability);
 
   passwordToggle.addEventListener('click', () => {
     const show = passwordInput.type === 'password';

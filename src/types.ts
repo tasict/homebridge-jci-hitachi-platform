@@ -11,6 +11,13 @@ export interface JciHitachiPlatformConfig extends PlatformConfig {
   // frost wash once a device has been off for AUTO_CLEAN_DELAY while its clean
   // notification is active. The switch state in HomeKit wins once it has been set.
   autoCleanWhenPowerOff?: boolean;
+  // Which optional services each air conditioner exposes (issue #12). All default
+  // to true; false removes the service from HomeKit. showFrostWash covers the
+  // 凍結洗淨通知 sensor and the 凍結洗淨 / 自動凍結洗淨 switches, and also disables
+  // the automatic frost wash.
+  showFrostWash?: boolean;
+  showHumiditySensor?: boolean;
+  showAirQualitySensor?: boolean;
   // ThingNames that must not be exposed to HomeKit. Managed via the device list
   // in the plugin settings UI.
   ignoredDevices?: string[];

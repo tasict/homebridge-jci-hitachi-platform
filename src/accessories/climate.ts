@@ -160,26 +160,39 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       .onGet(this.getRotationSpeed.bind(this))
       .onSet(this.setRotationSpeed.bind(this));
 
+    // Optional services (issue #12). Turning one off removes it from the cached
+    // accessory, so it disappears from the Home app on the next restart.
+    const config = this.platform.platformConfig;
+    const showFrostWash = config.showFrostWash !== false;
+
     /////
-    this.services['HumiditySensor'] = this.accessory.getService(this.platform.Service.HumiditySensor)
-    || this.accessory.addService(this.platform.Service.HumiditySensor);
+    if (config.showHumiditySensor !== false) {
+      this.services['HumiditySensor'] = this.accessory.getService(this.platform.Service.HumiditySensor)
+      || this.accessory.addService(this.platform.Service.HumiditySensor);
 
-    this.services['HumiditySensor'].getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
-      .onGet(this.getCurrentRelativeHumidity.bind(this));
+      this.services['HumiditySensor'].getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+        .onGet(this.getCurrentRelativeHumidity.bind(this));
+    } else {
+      this.removeService(this.accessory.getService(this.platform.Service.HumiditySensor));
+    }
 
-   
+
     /////
-    this.services['AirQualitySensor'] = this.accessory.getService(this.platform.Service.AirQualitySensor)
-    || this.accessory.addService(this.platform.Service.AirQualitySensor);
+    if (config.showAirQualitySensor !== false) {
+      this.services['AirQualitySensor'] = this.accessory.getService(this.platform.Service.AirQualitySensor)
+      || this.accessory.addService(this.platform.Service.AirQualitySensor);
 
-    this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.AirQuality)
-      .onGet(this.getCurrentAirQuality.bind(this));
+      this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.AirQuality)
+        .onGet(this.getCurrentAirQuality.bind(this));
 
-    this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.PM2_5Density)
-      .onGet(this.getCurrentPM2_5Density.bind(this));
+      this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.PM2_5Density)
+        .onGet(this.getCurrentPM2_5Density.bind(this));
 
-    this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.StatusActive)
-      .onGet(this.getActive.bind(this));
+      this.services['AirQualitySensor'].getCharacteristic(this.platform.Characteristic.StatusActive)
+        .onGet(this.getActive.bind(this));
+    } else {
+      this.removeService(this.accessory.getService(this.platform.Service.AirQualitySensor));
+    }
 
 
     //////////
@@ -197,6 +210,10 @@ export default class ClimateAccessory extends JciHitachiAccessory{
           
       this.services['QuickMode'].addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
       this.services['QuickMode'].setCharacteristic(this.platform.Characteristic.ConfiguredName, buttonQuickModeName);
+
+    }
+
+    if(this.platform.jciHitachiAWSAPI.isHost && showFrostWash){
 
       const buttonCleanSwitch = '凍結洗淨';
 
@@ -228,20 +245,26 @@ export default class ClimateAccessory extends JciHitachiAccessory{
 
 
 
-    ///////////    
+    ///////////
 
 
-     this.services['LeakSensor'] = this.accessory.getService(this.platform.Service.LeakSensor) || this.accessory.addService(this.platform.Service.LeakSensor, '凍結洗淨通知');
-    
-     this.services['LeakSensor'].setCharacteristic(this.platform.Characteristic.Name, '凍結洗淨通知');
-     this.services['LeakSensor'].getCharacteristic(this.platform.Characteristic.LeakDetected)
-    .onGet(this.getCleanNotification.bind(this));
+    if (showFrostWash) {
+      this.services['LeakSensor'] = this.accessory.getService(this.platform.Service.LeakSensor) || this.accessory.addService(this.platform.Service.LeakSensor, '凍結洗淨通知');
 
-     this.services['LeakSensor'].addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
-     this.services['LeakSensor'].setCharacteristic(this.platform.Characteristic.ConfiguredName, '凍結洗淨通知');
+      this.services['LeakSensor'].setCharacteristic(this.platform.Characteristic.Name, '凍結洗淨通知');
+      this.services['LeakSensor'].getCharacteristic(this.platform.Characteristic.LeakDetected)
+        .onGet(this.getCleanNotification.bind(this));
+
+      this.services['LeakSensor'].addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+      this.services['LeakSensor'].setCharacteristic(this.platform.Characteristic.ConfiguredName, '凍結洗淨通知');
+    } else {
+      this.removeService(this.accessory.getService(this.platform.Service.LeakSensor));
+      this.removeService(this.accessory.getServiceById(this.platform.Service.Switch, ClimateCommandType.CleanSwitch));
+      this.removeService(this.accessory.getServiceById(this.platform.Service.Switch, AUTO_CLEAN_SUBTYPE));
+    }
 
 
-    if (this.platform.platformConfig.autoCleanWhenPowerOff && !this.platform.jciHitachiAWSAPI.isHost) {
+    if (showFrostWash && this.platform.platformConfig.autoCleanWhenPowerOff && !this.platform.jciHitachiAWSAPI.isHost) {
       this.platform.log.warn(`'${this.accessory.displayName}': autoCleanWhenPowerOff is enabled, but the `
         + 'configured account is not the host (owner) account. 凍結洗淨 is a host-only command, '
         + 'so the automatic frost wash will not be triggered.');
@@ -345,7 +368,18 @@ export default class ClimateAccessory extends JciHitachiAccessory{
   }
 
   private get autoCleanEnabled(): boolean {
+    // With the frost wash services hidden there is no switch to turn it off.
+    if (this.platform.platformConfig.showFrostWash === false) {
+      return false;
+    }
     return this.accessory.context.autoClean ?? !!this.platform.platformConfig.autoCleanWhenPowerOff;
+  }
+
+  // Drops a service restored from the accessory cache once its option is turned off.
+  private removeService(service: Service | undefined) {
+    if (service) {
+      this.accessory.removeService(service);
+    }
   }
 
   async setAutoClean(value: CharacteristicValue) {
@@ -682,31 +716,31 @@ export default class ClimateAccessory extends JciHitachiAccessory{
       await this.getCurrentHeaterCoolerState()
     );
 
-    this.services['HumiditySensor'].updateCharacteristic(
+    this.services['HumiditySensor']?.updateCharacteristic(
       this.platform.Characteristic.CurrentRelativeHumidity,
       this.accessory.context.device.IndoorHumidity || 0,
     );
 
-    this.services['AirQualitySensor'].updateCharacteristic(
+    this.services['AirQualitySensor']?.updateCharacteristic(
       this.platform.Characteristic.AirQuality,
       await this.getCurrentAirQuality()
     );
 
-    this.services['AirQualitySensor'].updateCharacteristic(
+    this.services['AirQualitySensor']?.updateCharacteristic(
       this.platform.Characteristic.PM2_5Density,
       this.accessory.context.device.PM25 || 0,
     );
 
-    this.services['AirQualitySensor'].updateCharacteristic(
+    this.services['AirQualitySensor']?.updateCharacteristic(
       this.platform.Characteristic.StatusActive,
       this.accessory.context.device.SwitchOn || 0,
     );
 
 
     if(this.platform.jciHitachiAWSAPI.isHost){
-             
+
       this.services['QuickMode'].updateCharacteristic(this.platform.Characteristic.On, this.accessory.context.device.QuickMode || 0);
-      this.services['CleanSwitch'].updateCharacteristic(this.platform.Characteristic.On, this.accessory.context.device.CleanSwitch || 0);
+      this.services['CleanSwitch']?.updateCharacteristic(this.platform.Characteristic.On, this.accessory.context.device.CleanSwitch || 0);
 
     }
 

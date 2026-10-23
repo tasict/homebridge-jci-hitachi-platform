@@ -20,6 +20,7 @@ Free and open source. If it keeps your home comfortable, you can [buy me a boba]
 - Per-device temperature range taken from the device itself, so the Home app only offers set points the unit actually supports.
 - Self-healing connection: after a network drop or cloud maintenance outage the plugin keeps retrying with capped exponential backoff and recovers on its own — no Homebridge restart needed.
 - Settings UI with a device list, so devices can be reviewed and excluded (`ignoredDevices`) without editing JSON.
+- Choose which extras appear in the Home app: the frost wash sensor and switches, the humidity sensor and the air quality sensor can each be turned off.
 
 ## Supported devices
 
@@ -67,6 +68,9 @@ Configure the plugin through the settings UI or directly in the JSON editor:
       "password": "********",
       "ignoredDevices": [],
       "autoCleanWhenPowerOff": false,
+      "showFrostWash": true,
+      "showHumiditySensor": true,
+      "showAirQualitySensor": true,
       "debugMode": false
     }
   ]
@@ -95,12 +99,23 @@ Optional:
 * `autoCleanWhenPowerOff` (boolean):
 The initial state of each device's 自動凍結洗淨 switch (see [Automatic frost wash](#automatic-frost-wash)). Once a switch has been toggled in the Home app, the switch state is kept and this option no longer affects that device. Requires the host (owner) account — see above.
 
+* `showFrostWash` (boolean, default `true`):
+Expose the 凍結洗淨通知 sensor and the 凍結洗淨 / 自動凍結洗淨 switches. When `false` they are removed from HomeKit and the automatic frost wash does not run.
+
+* `showHumiditySensor` (boolean, default `true`):
+Expose the Humidity Sensor.
+
+* `showAirQualitySensor` (boolean, default `true`):
+Expose the Air Quality Sensor.
+
+Turning one of the `show*` options off removes that service from HomeKit after a restart, along with any automations that use it; turning it back on adds it as a new service, so those automations have to be set up again.
+
 * `debugMode` (boolean):
 If `true`, the plugin will print debugging information to the Homebridge log.
 
 ## What appears in the Home app
 
-Each air conditioner is exposed as one accessory with the following services:
+Each air conditioner is exposed as one accessory with the following services. Everything except the Heater Cooler and the 快速運轉 switch can be hidden with the `show*` options or under 在「家庭」App 顯示 in the settings UI.
 
 | Service | What it does |
 | --- | --- |
