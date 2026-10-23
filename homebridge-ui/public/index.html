@@ -1,9 +1,13 @@
 <!-- Custom settings UI. The schema-driven form is NOT shown: every field is
      rendered here so the page follows the task flow (account, devices,
-     what shows in Home, housekeeping) and the support footer can sit at the very bottom. When
+     housekeeping) and the support footer can sit at the very bottom. When
      adding a new config field, add it to this page AND to config.schema.json.
      All writes are read-modify-write against getPluginConfig() so fields the
-     page doesn't own (e.g. Homebridge's _bridge child-bridge block) are kept. -->
+     page doesn't own (e.g. Homebridge's _bridge child-bridge block) are kept.
+
+     Every visible string comes from I18N below (en / zh-TW / ja) and follows the
+     Homebridge UI language: static markup names its key in data-i18n, scripts
+     call t(). A new string needs all three languages. -->
 
 <!-- Config UI X mirrors its theme into this iframe only as body classes (dark
      themes add `dark-mode`), while the injected Bootstrap sheet keeps :root in
@@ -26,31 +30,37 @@
   .jhp-sw input:checked + .jhp-track { background: #0d6efd; }
   .jhp-sw input:checked + .jhp-track::after { transform: translateX(16px); }
   .jhp-sw input:focus-visible + .jhp-track { outline: 2px solid #0d6efd; outline-offset: 2px; }
-  .jhp-sw input:disabled { cursor: not-allowed; }
-  .jhp-sw input:disabled + .jhp-track { opacity: 0.45; }
-  .jhp-opt:has(input:disabled) :is(.jhp-opt-title, .jhp-opt-desc) { opacity: 0.55; }
-  .jhp-opt-note { font-size: 12px; line-height: 1.5; margin-top: 4px; color: #b02a37; }
-  body.dark-mode .jhp-opt-note { color: #ea868f; }
-  /* "Shown in Home" tiles echo Home app accessory tiles. A hidden service turns
-     into a dashed, faded outline: the empty slot it leaves in the Home app. */
-  .jhp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-  .jhp-tile { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 12px; border: 1px solid #dee2e6; border-radius: 12px; cursor: pointer; transition: border-color 0.15s; }
-  .jhp-tile:hover { border-color: #adb5bd; }
-  .jhp-tile-head { display: flex; align-items: center; justify-content: space-between; }
-  .jhp-tile-icon { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 110, 253, 0.1); color: #0d6efd; transition: background-color 0.15s, color 0.15s; }
-  .jhp-tile-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .jhp-tile-title { display: block; font-weight: 600; font-size: 13px; }
-  .jhp-tile-desc { display: block; font-size: 12px; opacity: 0.7; line-height: 1.5; margin-top: 2px; }
-  .jhp-tile-text { transition: opacity 0.15s; }
-  .jhp-tile:has(input:not(:checked)) { border-style: dashed; }
-  .jhp-tile:has(input:not(:checked)) .jhp-tile-icon { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
-  .jhp-tile:has(input:not(:checked)) .jhp-tile-text { opacity: 0.55; }
-  body.dark-mode .jhp-tile { border-color: #3e4144; }
-  body.dark-mode .jhp-tile:hover { border-color: #6c757d; }
-  body.dark-mode .jhp-tile-icon { background: rgba(110, 168, 254, 0.15); color: #6ea8fe; }
-  body.dark-mode .jhp-tile:has(input:not(:checked)) .jhp-tile-icon { background: rgba(173, 181, 189, 0.12); color: #adb5bd; }
+  /* One row per device: name and type on the left, its HomeKit switch on the
+     right, and below that the tags for what it shows in the Home app. */
+  .jhp-dev { padding: 10px 12px; }
+  .jhp-dev + .jhp-dev { border-top: 1px solid #dee2e6; }
+  body.dark-mode .jhp-dev + .jhp-dev { border-top-color: #3e4144; }
+  .jhp-dev-all { background: rgba(13, 110, 253, 0.04); border-radius: 7px 7px 0 0; }
+  body.dark-mode .jhp-dev-all { background: rgba(110, 168, 254, 0.06); }
+  .jhp-dev-head { display: flex; gap: 12px; align-items: flex-start; }
+  .jhp-dev-main { flex: 1 1 auto; min-width: 0; }
+  .jhp-dev-name { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+  .jhp-dev-meta { font-size: 12px; opacity: 0.7; overflow-wrap: anywhere; }
+  .jhp-dev-skip { font-size: 12px; opacity: 0.7; margin-top: 6px; }
+  .jhp-dev.is-off .jhp-dev-main { opacity: 0.55; }
+  /* Tags: shown is tinted with a solid outline; hidden is a dashed, faded
+     outline, the empty slot it leaves in the Home app. */
+  .jhp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .jhp-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; margin: 0; padding: 2px 10px 2px 8px; border: 1px solid rgba(13, 110, 253, 0.35); border-radius: 14px; background: rgba(13, 110, 253, 0.08); color: inherit; font-size: 12px; line-height: 1.2; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+  .jhp-chip svg { width: 14px; height: 14px; flex-shrink: 0; fill: none; stroke: #0d6efd; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .jhp-chip:hover { border-color: rgba(13, 110, 253, 0.6); }
+  .jhp-chip:focus-visible { outline: 2px solid #0d6efd; outline-offset: 2px; }
+  .jhp-chip[aria-pressed="false"] { border-style: dashed; border-color: #adb5bd; background: transparent; color: #6c757d; }
+  .jhp-chip[aria-pressed="false"] svg { stroke: currentColor; }
+  .jhp-chip[aria-pressed="mixed"] { border-color: #adb5bd; background: transparent; }
+  .jhp-chip-count { font-variant-numeric: tabular-nums; opacity: 0.75; }
+  body.dark-mode .jhp-chip { border-color: rgba(110, 168, 254, 0.4); background: rgba(110, 168, 254, 0.12); }
+  body.dark-mode .jhp-chip svg { stroke: #6ea8fe; }
+  body.dark-mode .jhp-chip[aria-pressed="false"] { border-color: #6c757d; background: transparent; color: #adb5bd; }
+  body.dark-mode .jhp-chip[aria-pressed="false"] svg { stroke: currentColor; }
+  body.dark-mode .jhp-chip[aria-pressed="mixed"] { border-color: #6c757d; background: transparent; }
   @media (prefers-reduced-motion: reduce) {
-    .jhp-tile, .jhp-tile-icon, .jhp-tile-text, .jhp-sw .jhp-track, .jhp-sw .jhp-track::after { transition: none; }
+    .jhp-chip, .jhp-sw .jhp-track, .jhp-sw .jhp-track::after { transition: none; }
   }
   .jhp-fields { display: flex; flex-wrap: wrap; gap: 10px 16px; }
   .jhp-fields > div { flex: 1 1 220px; min-width: 0; }
@@ -73,148 +83,73 @@
   .jhp-support-note { opacity: 0.6; font-size: 11.5px; margin: 8px 0 0; }
 </style>
 
+<!-- Hidden until the strings for the Homebridge UI language are filled in. -->
+<div id="jhpPage" hidden>
+
 <!-- 1. Account: the device list below needs it, so it comes first. -->
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="card-title">AirCloud Home 帳號</h5>
-    <p class="card-text text-muted small mb-2">
-      輸入 AirCloud Home App 的登入帳號。建議另外建立一個帳號給 Homebridge，再從主帳號把冷氣分享過去；不過「快速運轉」、「凍結洗淨」和「自動凍結洗淨」開關只有用主帳號（擁有者）登入時才會出現。
-    </p>
+    <h5 class="card-title" data-i18n="accountTitle"></h5>
+    <p class="card-text text-muted small mb-2" data-i18n="accountIntro"></p>
     <div class="jhp-fields">
       <div>
-        <label for="jhpEmail" class="small mb-1">Email</label>
+        <label for="jhpEmail" class="small mb-1" data-i18n="email"></label>
         <input type="email" id="jhpEmail" class="form-control form-control-sm" autocomplete="username" placeholder="mail@example.com">
       </div>
       <div>
-        <label for="jhpPassword" class="small mb-1">密碼</label>
+        <label for="jhpPassword" class="small mb-1" data-i18n="password"></label>
         <div class="jhp-pw">
           <input type="password" id="jhpPassword" class="form-control form-control-sm" autocomplete="current-password">
-          <button type="button" id="jhpPasswordToggle" class="btn btn-sm btn-outline-secondary m-0" aria-controls="jhpPassword" aria-pressed="false">顯示</button>
+          <button type="button" id="jhpPasswordToggle" class="btn btn-sm btn-outline-secondary m-0" aria-controls="jhpPassword" aria-pressed="false" data-i18n="showPassword"></button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 2. Devices: everything on the account, with a per-device skip box (ignoredDevices). -->
+<!-- 2. Devices: whether each unit joins HomeKit (ignoredDevices) and what it
+     shows there (devices[].show*, falling back to the top-level show*). -->
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="card-title">裝置清單</h5>
-    <p class="card-text text-muted small mb-2">
-      勾選「略過」的裝置不會加入 HomeKit。修改後請按下方「儲存」，並重啟 Homebridge 讓設定生效。
-    </p>
-    <div id="deviceStatus" class="text-muted small mb-2"></div>
-    <div style="overflow-x: auto;">
-      <table class="table table-sm" id="deviceTable" style="display: none;">
-        <thead>
-          <tr>
-            <th style="width: 4rem;">略過</th>
-            <th>名稱</th>
-            <th>類型</th>
-            <th>ThingName</th>
-          </tr>
-        </thead>
-        <tbody id="deviceRows"></tbody>
-      </table>
-    </div>
-    <button type="button" class="btn btn-primary btn-sm m-0" id="btnRefresh">重新整理裝置清單</button>
+    <h5 class="card-title" data-i18n="devicesTitle"></h5>
+    <p class="card-text text-muted small mb-2" data-i18n="devicesIntro"></p>
+    <div id="deviceStatus" class="text-muted small mb-2" role="status"></div>
+    <div id="deviceList" class="jhp-opts mb-2" hidden></div>
+    <button type="button" class="btn btn-primary btn-sm m-0" id="btnRefresh" data-i18n="refresh"></button>
+    <p class="card-text text-muted small mt-2 mb-0" data-i18n="devicesNote"></p>
   </div>
 </div>
 
-<!-- 3. What each air conditioner shows in the Home app (showFrostWash,
-     showHumiditySensor, showAirQualitySensor; all default to shown). -->
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="card-title">在「家庭」App 顯示</h5>
-    <p class="card-text text-muted small mb-2">
-      冷氣的電源、模式、溫度與風速一律會顯示。下列附加項目套用到每一台冷氣，用不到的可以關閉，讓「家庭」App 更簡潔。
-    </p>
-    <div class="jhp-tiles">
-      <label class="jhp-tile" for="jhpShowFrostWash">
-        <span class="jhp-tile-head">
-          <span class="jhp-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>
-          </span>
-          <span class="jhp-sw">
-            <input type="checkbox" id="jhpShowFrostWash" data-show="showFrostWash" aria-labelledby="jhpShowFrostWashTitle" aria-describedby="jhpShowFrostWashDesc">
-            <span class="jhp-track"></span>
-          </span>
-        </span>
-        <span class="jhp-tile-text">
-          <span class="jhp-tile-title" id="jhpShowFrostWashTitle">凍結洗淨</span>
-          <span class="jhp-tile-desc" id="jhpShowFrostWashDesc">「凍結洗淨通知」感測器，以及主帳號才有的「凍結洗淨」、「自動凍結洗淨」開關。</span>
-        </span>
-      </label>
-      <label class="jhp-tile" for="jhpShowHumidity">
-        <span class="jhp-tile-head">
-          <span class="jhp-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M12 3c3.2 3.8 6 7.2 6 11a6 6 0 0 1-12 0c0-3.8 2.8-7.2 6-11z"/></svg>
-          </span>
-          <span class="jhp-sw">
-            <input type="checkbox" id="jhpShowHumidity" data-show="showHumiditySensor" aria-labelledby="jhpShowHumidityTitle" aria-describedby="jhpShowHumidityDesc">
-            <span class="jhp-track"></span>
-          </span>
-        </span>
-        <span class="jhp-tile-text">
-          <span class="jhp-tile-title" id="jhpShowHumidityTitle">濕度感測器</span>
-          <span class="jhp-tile-desc" id="jhpShowHumidityDesc">冷氣量測到的室內相對濕度。</span>
-        </span>
-      </label>
-      <label class="jhp-tile" for="jhpShowAirQuality">
-        <span class="jhp-tile-head">
-          <span class="jhp-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5M3 13h15a2.5 2.5 0 1 1-2.5 2.5M3 17h7"/></svg>
-          </span>
-          <span class="jhp-sw">
-            <input type="checkbox" id="jhpShowAirQuality" data-show="showAirQualitySensor" aria-labelledby="jhpShowAirQualityTitle" aria-describedby="jhpShowAirQualityDesc">
-            <span class="jhp-track"></span>
-          </span>
-        </span>
-        <span class="jhp-tile-text">
-          <span class="jhp-tile-title" id="jhpShowAirQualityTitle">空氣品質感測器</span>
-          <span class="jhp-tile-desc" id="jhpShowAirQualityDesc">依 PM2.5 判斷的空氣品質等級，以及 PM2.5 濃度。</span>
-        </span>
-      </label>
-    </div>
-    <p class="card-text text-muted small mt-2 mb-0">
-      儲存並重啟 Homebridge 後，關閉的項目會從「家庭」App 移除，用到它的自動化也會跟著失效；之後再開啟時，需要重新設定這些自動化。
-    </p>
-  </div>
-</div>
-
-<!-- 4. Advanced: housekeeping nobody touches day-to-day. -->
+<!-- 3. Advanced: housekeeping nobody touches day-to-day. -->
 <div class="card mb-3">
   <div class="card-body py-2">
     <button type="button" id="jhpAdvToggle" class="jhp-adv-toggle d-flex align-items-center" aria-expanded="false" aria-controls="jhpAdvBody">
       <span id="jhpAdvChevron" aria-hidden="true" style="margin-right: 8px;">&#9656;</span>
-      <strong>進階</strong>
+      <strong data-i18n="advanced"></strong>
     </button>
     <div id="jhpAdvBody" style="display: none;">
       <div class="form-group mt-2 mb-2">
-        <label for="jhpName" class="small mb-1">外掛名稱（顯示在 Homebridge 記錄中）</label>
+        <label for="jhpName" class="small mb-1" data-i18n="pluginName"></label>
         <input type="text" id="jhpName" class="form-control form-control-sm" placeholder="JciHitachi Platform">
       </div>
       <div class="jhp-opts mb-2">
         <div class="jhp-opt">
           <div class="jhp-opt-main">
-            <div class="jhp-opt-title">「自動凍結洗淨」預設開啟</div>
-            <div class="jhp-opt-desc">
-              用主帳號登入時，每台冷氣在「家庭」App 裡都有「自動凍結洗淨」開關：開啟後，冷氣關機滿 5 分鐘、且機器提示需要洗淨時，會自動開始凍結洗淨。這個選項只決定開關第一次出現時的狀態，之後以「家庭」App 裡的開關為準。
-            </div>
-            <div class="jhp-opt-note" id="jhpAutoCleanNote" hidden>「凍結洗淨」目前設為不在「家庭」App 顯示，自動凍結洗淨不會執行。</div>
+            <div class="jhp-opt-title" id="jhpAutoCleanTitle" data-i18n="autoCleanTitle"></div>
+            <div class="jhp-opt-desc" data-i18n="autoCleanDesc"></div>
           </div>
-          <label class="jhp-sw" title="「自動凍結洗淨」預設開啟">
-            <input type="checkbox" id="jhpAutoClean" aria-label="「自動凍結洗淨」預設開啟">
+          <label class="jhp-sw">
+            <input type="checkbox" id="jhpAutoClean" aria-labelledby="jhpAutoCleanTitle">
             <span class="jhp-track"></span>
           </label>
         </div>
         <div class="jhp-opt">
           <div class="jhp-opt-main">
-            <div class="jhp-opt-title">除錯模式</div>
-            <div class="jhp-opt-desc">在 Homebridge 記錄中輸出除錯資訊。回報問題時請先開啟。</div>
+            <div class="jhp-opt-title" id="jhpDebugTitle" data-i18n="debugTitle"></div>
+            <div class="jhp-opt-desc" data-i18n="debugDesc"></div>
           </div>
-          <label class="jhp-sw" title="除錯模式">
-            <input type="checkbox" id="jhpDebug" aria-label="除錯模式">
+          <label class="jhp-sw">
+            <input type="checkbox" id="jhpDebug" aria-labelledby="jhpDebugTitle">
             <span class="jhp-track"></span>
           </label>
         </div>
@@ -228,22 +163,220 @@
      links in sync with package.json funding, .github/FUNDING.yml, the README
      and the website. -->
 <div class="jhp-support">
-  <p class="jhp-support-text">
-    這個外掛免費、開放原始碼。如果它讓你家更舒適，可以請我喝杯珍奶，或用 PayPal 小額贊助。
-  </p>
+  <p class="jhp-support-text" data-i18n="supportText"></p>
   <div class="jhp-support-links">
-    <a class="jhp-tip" href="https://tasict.bobaboba.me" target="_blank" rel="noopener noreferrer"><img src="data:image/png;base64,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" alt="" width="20" height="20">請我喝珍奶</a>
-    <a class="jhp-tip" href="https://paypal.me/tasict" target="_blank" rel="noopener noreferrer">用 PayPal 贊助</a>
+    <a class="jhp-tip" href="https://tasict.bobaboba.me" target="_blank" rel="noopener noreferrer"><img src="data:image/png;base64,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" alt="" width="20" height="20"><span data-i18n="supportBoba"></span></a>
+    <a class="jhp-tip" href="https://paypal.me/tasict" target="_blank" rel="noopener noreferrer" data-i18n="supportPaypal"></a>
   </div>
-  <p class="jhp-support-note">珍奶贊助直接刷卡，不需要 PayPal 帳號。</p>
+  <p class="jhp-support-note" data-i18n="supportNote"></p>
+</div>
+
 </div>
 
 <script>
 (async () => {
   const PLATFORM = 'JciHitachi Platform';
   const DEFAULT_NAME = 'JciHitachi Platform';
-  const DEVICE_TYPE_NAMES = { 1: '冷氣', 2: '除濕機', 3: '空氣清淨機' };
   const SUPPORTED_DEVICE_TYPES = [1];
+
+  // Optional services an air conditioner can show in the Home app; key is the
+  // config field (per device in `devices`, default at the top level).
+  const SHOW_ITEMS = [
+    { key: 'showFrostWash', label: 'chipFrostWash', icon: '<path d="M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/>' },
+    { key: 'showHumiditySensor', label: 'chipHumidity', icon: '<path d="M12 3c3.2 3.8 6 7.2 6 11a6 6 0 0 1-12 0c0-3.8 2.8-7.2 6-11z"/>' },
+    { key: 'showAirQualitySensor', label: 'chipAirQuality', icon: '<path d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5M3 13h15a2.5 2.5 0 1 1-2.5 2.5M3 17h7"/>' },
+  ];
+
+  // HomeKit service names (快速運轉, 凍結洗淨, ...) are Chinese in every language,
+  // so the English and Japanese text quotes them as the Home app shows them.
+  const I18N = {
+    en: {
+      accountTitle: 'AirCloud Home account',
+      accountIntro: 'Sign in with your AirCloud Home app account. A separate account for Homebridge, with the air conditioners shared to it from your main account, is the most reliable setup. The 快速運轉 (quick mode), 凍結洗淨 (frost wash) and 自動凍結洗淨 (auto frost wash) switches only appear when you sign in with the host (owner) account, though.',
+      email: 'Email',
+      password: 'Password',
+      showPassword: 'Show',
+      hidePassword: 'Hide',
+      devicesTitle: 'Devices',
+      devicesIntro: 'The switch on the right decides whether a device is added to HomeKit. Select the tags below it to choose what else it shows in the Home app. Frost wash covers the 凍結洗淨通知 notification sensor and, with the host account, the 凍結洗淨 and 自動凍結洗淨 switches.',
+      devicesNote: 'Changes take effect after you save and restart Homebridge. Hidden items are removed from the Home app, and automations that use them stop working; if you show them again later, those automations need to be set up again.',
+      refresh: 'Reload device list',
+      loading: 'Loading…',
+      needEmail: 'Enter your email and password above, then select Reload device list.',
+      deviceCount: 'Devices on this account: {n}',
+      noDevices: 'This account has no devices. Add your air conditioners in the AirCloud Home app first.',
+      tokenCached: ' (using the saved sign-in)',
+      tokenFresh: ' (signed in and saved the sign-in)',
+      loadFailed: 'Couldn\'t load the device list.',
+      loadFailedTitle: 'Couldn\'t load devices',
+      unsaved: 'Not saved yet: select Save below, then restart Homebridge.',
+      configWriteFailed: 'Couldn\'t update the settings',
+      err_emailRequired: 'Enter your email first.',
+      err_tokenExpired: 'The saved sign-in has expired. Enter your password and reload the device list.',
+      err_loginFailed: 'Sign-in failed: {detail}',
+      err_loginRejected: 'Sign-in failed. Check your email and password.',
+      err_deviceListFailed: 'Couldn\'t get the device list: {detail}',
+      type1: 'Air conditioner',
+      type2: 'Dehumidifier',
+      type3: 'Air purifier',
+      typeUnknown: 'Unknown type ({n})',
+      unsupported: 'not supported yet',
+      unnamed: '(unnamed)',
+      addToHomeKit: 'Add {name} to HomeKit',
+      notAdded: 'Not added to HomeKit.',
+      chipsAria: 'Shown in the Home app: {name}',
+      allDevices: 'All air conditioners',
+      allDevicesMeta: 'Applies to every air conditioner added to HomeKit.',
+      chipFrostWash: 'Frost wash',
+      chipHumidity: 'Humidity',
+      chipAirQuality: 'Air quality',
+      advanced: 'Advanced',
+      pluginName: 'Plugin name (shown in the Homebridge log)',
+      autoCleanTitle: 'Turn on 自動凍結洗淨 by default',
+      autoCleanDesc: 'With the host account, every air conditioner gets a 自動凍結洗淨 switch in the Home app. While it is on, a frost wash starts once the unit has been off for 5 minutes and asks for cleaning. This option only sets the switch\'s first state; after that, the switch in the Home app wins. Units with frost wash hidden never wash automatically.',
+      debugTitle: 'Debug mode',
+      debugDesc: 'Writes debug information to the Homebridge log. Turn it on before reporting a problem.',
+      supportText: 'This plugin is free and open source. If it keeps your home comfortable, you can buy me a boba or send a small tip with PayPal.',
+      supportBoba: 'Buy me a boba',
+      supportPaypal: 'Tip with PayPal',
+      supportNote: 'Boba tips are paid by card; no PayPal account needed.',
+    },
+    'zh-TW': {
+      accountTitle: 'AirCloud Home 帳號',
+      accountIntro: '輸入 AirCloud Home App 的登入帳號。建議另外建立一個帳號給 Homebridge，再從主帳號把冷氣分享過去；不過「快速運轉」、「凍結洗淨」和「自動凍結洗淨」開關只有用主帳號（擁有者）登入時才會出現。',
+      email: 'Email',
+      password: '密碼',
+      showPassword: '顯示',
+      hidePassword: '隱藏',
+      devicesTitle: '裝置',
+      devicesIntro: '右側開關決定這台裝置是否加入 HomeKit。點下方的標籤，選擇要在「家庭」App 一起顯示的項目：「凍結洗淨」包含洗淨通知感測器，以及主帳號才有的「凍結洗淨」、「自動凍結洗淨」開關。',
+      devicesNote: '變更會在按下「儲存」並重啟 Homebridge 後生效。隱藏的項目會從「家庭」App 移除，用到它的自動化也會失效；之後再顯示時，需要重新設定這些自動化。',
+      refresh: '重新整理裝置清單',
+      loading: '載入中…',
+      needEmail: '請先在上方填寫 Email 與密碼，再按「重新整理裝置清單」。',
+      deviceCount: '共 {n} 台裝置',
+      noDevices: '這個帳號沒有任何裝置。請先在 AirCloud Home App 加入冷氣。',
+      tokenCached: '（使用已記住的登入 Token）',
+      tokenFresh: '（已重新登入並記住 Token）',
+      loadFailed: '載入裝置清單失敗。',
+      loadFailedTitle: '載入裝置失敗',
+      unsaved: '尚未儲存：請按下方「儲存」，再重啟 Homebridge。',
+      configWriteFailed: '更新設定失敗',
+      err_emailRequired: '請先填寫 Email。',
+      err_tokenExpired: '登入 Token 已失效，請填寫密碼後再重新整理裝置清單。',
+      err_loginFailed: '登入失敗：{detail}',
+      err_loginRejected: '登入失敗，請確認 Email 與密碼。',
+      err_deviceListFailed: '無法取得裝置清單：{detail}',
+      type1: '冷氣',
+      type2: '除濕機',
+      type3: '空氣清淨機',
+      typeUnknown: '未知類型（{n}）',
+      unsupported: '外掛尚未支援',
+      unnamed: '（未命名）',
+      addToHomeKit: '將「{name}」加入 HomeKit',
+      notAdded: '不會加入 HomeKit。',
+      chipsAria: '「{name}」在「家庭」App 顯示的項目',
+      allDevices: '全部冷氣',
+      allDevicesMeta: '一次套用到所有加入 HomeKit 的冷氣。',
+      chipFrostWash: '凍結洗淨',
+      chipHumidity: '濕度',
+      chipAirQuality: '空氣品質',
+      advanced: '進階',
+      pluginName: '外掛名稱（顯示在 Homebridge 記錄中）',
+      autoCleanTitle: '「自動凍結洗淨」預設開啟',
+      autoCleanDesc: '用主帳號登入時，每台冷氣在「家庭」App 裡都有「自動凍結洗淨」開關：開啟後，冷氣關機滿 5 分鐘、且機器提示需要洗淨時，會自動開始凍結洗淨。這個選項只決定開關第一次出現時的狀態，之後以「家庭」App 裡的開關為準。隱藏凍結洗淨的冷氣不會自動洗淨。',
+      debugTitle: '除錯模式',
+      debugDesc: '在 Homebridge 記錄中輸出除錯資訊。回報問題時請先開啟。',
+      supportText: '這個外掛免費、開放原始碼。如果它讓你家更舒適，可以請我喝杯珍奶，或用 PayPal 小額贊助。',
+      supportBoba: '請我喝珍奶',
+      supportPaypal: '用 PayPal 贊助',
+      supportNote: '珍奶贊助直接刷卡，不需要 PayPal 帳號。',
+    },
+    ja: {
+      accountTitle: 'AirCloud Home アカウント',
+      accountIntro: 'AirCloud Home アプリのアカウントでサインインします。Homebridge 用に別のアカウントを作り、メインのアカウントからエアコンを共有するのがいちばん安定します。ただし「快速運轉」「凍結洗淨」「自動凍結洗淨」のスイッチは、オーナーアカウントでサインインしたときだけ表示されます。',
+      email: 'メールアドレス',
+      password: 'パスワード',
+      showPassword: '表示',
+      hidePassword: '隠す',
+      devicesTitle: 'デバイス',
+      devicesIntro: '右のスイッチで、そのデバイスを HomeKit に追加するかどうかを決めます。下のタグを押すと、「ホーム」App に一緒に表示する項目を選べます。凍結洗浄には洗浄のお知らせセンサー「凍結洗淨通知」と、オーナーアカウントの場合は「凍結洗淨」「自動凍結洗淨」スイッチが含まれます。',
+      devicesNote: '変更は「保存」して Homebridge を再起動すると反映されます。非表示にした項目は「ホーム」App から削除され、その項目を使うオートメーションも動かなくなります。あとで再び表示した場合は、オートメーションを設定し直してください。',
+      refresh: 'デバイス一覧を再読み込み',
+      loading: '読み込み中…',
+      needEmail: '上にメールアドレスとパスワードを入力してから、「デバイス一覧を再読み込み」を押してください。',
+      deviceCount: '{n} 台のデバイス',
+      noDevices: 'このアカウントにはデバイスがありません。先に AirCloud Home アプリでエアコンを登録してください。',
+      tokenCached: '（保存済みのサインインを使用）',
+      tokenFresh: '（サインインして保存しました）',
+      loadFailed: 'デバイス一覧を読み込めませんでした。',
+      loadFailedTitle: 'デバイスを読み込めません',
+      unsaved: 'まだ保存されていません。下の「保存」を押してから Homebridge を再起動してください。',
+      configWriteFailed: '設定を更新できませんでした',
+      err_emailRequired: '先にメールアドレスを入力してください。',
+      err_tokenExpired: '保存したサインインの有効期限が切れました。パスワードを入力して、デバイス一覧を再読み込みしてください。',
+      err_loginFailed: 'サインインできませんでした：{detail}',
+      err_loginRejected: 'サインインできませんでした。メールアドレスとパスワードを確認してください。',
+      err_deviceListFailed: 'デバイス一覧を取得できませんでした：{detail}',
+      type1: 'エアコン',
+      type2: '除湿機',
+      type3: '空気清浄機',
+      typeUnknown: '不明な種類（{n}）',
+      unsupported: '未対応',
+      unnamed: '（名前なし）',
+      addToHomeKit: '{name} を HomeKit に追加',
+      notAdded: 'HomeKit に追加しません。',
+      chipsAria: '{name} を「ホーム」App で表示する項目',
+      allDevices: 'すべてのエアコン',
+      allDevicesMeta: 'HomeKit に追加したすべてのエアコンに適用します。',
+      chipFrostWash: '凍結洗浄',
+      chipHumidity: '湿度',
+      chipAirQuality: '空気質',
+      advanced: '詳細設定',
+      pluginName: 'プラグイン名（Homebridge のログに表示）',
+      autoCleanTitle: '「自動凍結洗淨」を最初からオンにする',
+      autoCleanDesc: 'オーナーアカウントでは、各エアコンの「ホーム」App に「自動凍結洗淨」スイッチが付きます。オンにすると、エアコンを切ってから 5 分たち、洗浄のお知らせが出ていれば、自動で凍結洗浄が始まります。この設定はスイッチの最初の状態だけを決め、その後は「ホーム」App のスイッチが優先されます。凍結洗浄を非表示にしたエアコンは自動で洗浄しません。',
+      debugTitle: 'デバッグモード',
+      debugDesc: 'Homebridge のログにデバッグ情報を出力します。不具合を報告するときはオンにしてください。',
+      supportText: 'このプラグインは無料のオープンソースです。快適に使えていたら、タピオカを 1 杯おごるか、PayPal で少しご支援いただけるとうれしいです。',
+      supportBoba: 'タピオカをおごる',
+      supportPaypal: 'PayPal で支援',
+      supportNote: 'タピオカはクレジットカードで支払えます。PayPal アカウントは不要です。',
+    },
+  };
+
+  // Chinese variants share the Traditional Chinese text; anything else without
+  // a translation falls back to English.
+  function pickLang(code) {
+    const c = String(code || '').toLowerCase();
+    return c.startsWith('zh') ? 'zh-TW' : c.startsWith('ja') ? 'ja' : 'en';
+  }
+
+  // The page stays hidden until this resolves, so don't wait on a Config UI X
+  // that never answers; the browser language is the fallback.
+  let lang;
+  try {
+    lang = pickLang((await Promise.race([
+      homebridge.i18nCurrentLang(),
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+    ])) || navigator.language);
+  } catch (e) {
+    lang = pickLang(navigator.language);
+  }
+
+  function t(key, vars) {
+    let text = I18N[lang][key] || I18N.en[key] || key;
+    for (const name of Object.keys(vars || {})) {
+      text = text.replaceAll(`{${name}}`, String(vars[name]));
+    }
+    return text;
+  }
+
+  document.documentElement.lang = lang;
+  for (const node of document.querySelectorAll('[data-i18n]')) {
+    node.textContent = t(node.dataset.i18n);
+  }
+  document.getElementById('jhpPage').hidden = false;
 
   const emailInput = document.getElementById('jhpEmail');
   const passwordInput = document.getElementById('jhpPassword');
@@ -251,17 +384,18 @@
   const nameInput = document.getElementById('jhpName');
   const autoCleanInput = document.getElementById('jhpAutoClean');
   const debugInput = document.getElementById('jhpDebug');
-  const autoCleanNote = document.getElementById('jhpAutoCleanNote');
-  const frostWashInput = document.getElementById('jhpShowFrostWash');
-  // "Shown in Home" switches; data-show holds the config field they write.
-  const showInputs = Array.from(document.querySelectorAll('input[data-show]'));
   const statusEl = document.getElementById('deviceStatus');
-  const tableEl = document.getElementById('deviceTable');
-  const rowsEl = document.getElementById('deviceRows');
+  const listEl = document.getElementById('deviceList');
 
-  // ThingNames to skip. Entries for devices that are not listed right now (e.g.
-  // temporarily removed from the account) are kept, not dropped.
+  // ThingNames to skip, and per-device show* entries keyed by ThingName.
+  // Entries for devices that are not listed right now (e.g. temporarily removed
+  // from the account) are kept, not dropped.
   const ignored = new Set();
+  const deviceSettings = new Map();
+  // Top-level show* values: what a device shows when it has no entry of its own.
+  const showDefaults = {};
+  // Devices on the account, from the last successful /devices request.
+  let devices = [];
 
   function setStatus(text) {
     statusEl.textContent = text;
@@ -282,81 +416,178 @@
       config.email = emailInput.value.trim();
       config.password = passwordInput.value;
       config.ignoredDevices = Array.from(ignored);
+      config.devices = Array.from(deviceSettings.values()).filter((entry) => Object.keys(entry).length > 1);
+      if (config.devices.length === 0) {
+        delete config.devices;
+      }
       config.autoCleanWhenPowerOff = autoCleanInput.checked;
       config.debugMode = debugInput.checked;
-      for (const input of showInputs) {
-        config[input.dataset.show] = input.checked;
-      }
       await homebridge.updatePluginConfig(configs);
-    }).catch((e) => homebridge.toast.error(String(e), '更新設定失敗'));
+    }).catch((e) => homebridge.toast.error(String(e), t('configWriteFailed')));
     return pendingWrite;
   }
 
-  // The automatic wash runs through the frost wash switches, so its default is
-  // moot while they are hidden. The stored value is kept for when they return.
-  function updateAutoCleanAvailability() {
-    autoCleanInput.disabled = !frostWashInput.checked;
-    autoCleanNote.hidden = frostWashInput.checked;
+  function isShown(thingName, key) {
+    const value = (deviceSettings.get(thingName) || {})[key];
+    return typeof value === 'boolean' ? value : showDefaults[key];
   }
 
-  function renderDevices(devices) {
-    rowsEl.innerHTML = '';
-
-    for (const device of devices) {
-      const tr = document.createElement('tr');
-
-      const tdCheck = document.createElement('td');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = ignored.has(device.thingName);
-      checkbox.setAttribute('aria-label', `略過 ${device.name || device.thingName}`);
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          ignored.add(device.thingName);
-        } else {
-          ignored.delete(device.thingName);
-        }
-        sync();
-        const skipped = devices.filter((d) => ignored.has(d.thingName)).length;
-        setStatus(skipped > 0
-          ? `已略過 ${skipped} 台裝置（尚未儲存，請按下方「儲存」）`
-          : '未略過任何裝置（尚未儲存，請按下方「儲存」）');
-      });
-      tdCheck.appendChild(checkbox);
-
-      const tdName = document.createElement('td');
-      tdName.textContent = device.name || '(未命名)';
-
-      const tdType = document.createElement('td');
-      tdType.textContent = DEVICE_TYPE_NAMES[device.deviceType] || `未知 (${device.deviceType})`;
-      if (!SUPPORTED_DEVICE_TYPES.includes(device.deviceType)) {
-        tdType.textContent += '，外掛尚未支援';
-      }
-
-      const tdThing = document.createElement('td');
-      tdThing.textContent = device.thingName;
-      tdThing.className = 'jhp-mono';
-
-      tr.appendChild(tdCheck);
-      tr.appendChild(tdName);
-      tr.appendChild(tdType);
-      tr.appendChild(tdThing);
-      rowsEl.appendChild(tr);
+  // Only differences from the default are stored, so config.json stays short.
+  function setShown(thingName, key, value) {
+    const entry = deviceSettings.get(thingName) || { thingName: thingName };
+    if (value === showDefaults[key]) {
+      delete entry[key];
+    } else {
+      entry[key] = value;
     }
+    deviceSettings.set(thingName, entry);
+  }
 
-    tableEl.style.display = devices.length > 0 ? '' : 'none';
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) {
+      node.className = className;
+    }
+    if (text !== undefined) {
+      node.textContent = text;
+    }
+    return node;
+  }
+
+  // data-focus names a control across re-renders, so the one just used keeps focus.
+  function makeChip(item, pressed, count, focusKey, onClick) {
+    const chip = el('button', 'jhp-chip');
+    chip.type = 'button';
+    chip.setAttribute('aria-pressed', pressed);
+    chip.dataset.focus = focusKey;
+    chip.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg>`;
+    chip.append(t(item.label));
+    if (count) {
+      chip.appendChild(el('span', 'jhp-chip-count', count));
+    }
+    chip.addEventListener('click', onClick);
+    return chip;
+  }
+
+  function makeChips(label, chips) {
+    const group = el('div', 'jhp-chips');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', label);
+    for (const chip of chips) {
+      group.appendChild(chip);
+    }
+    return group;
+  }
+
+  function renderAllRow(added) {
+    const row = el('div', 'jhp-dev jhp-dev-all');
+    row.appendChild(el('div', 'jhp-dev-name', t('allDevices')));
+    row.appendChild(el('div', 'jhp-dev-meta', t('allDevicesMeta')));
+    row.appendChild(makeChips(t('allDevices'), SHOW_ITEMS.map((item) => {
+      const shown = added.filter((d) => isShown(d.thingName, item.key)).length;
+      const pressed = shown === added.length ? 'true' : shown === 0 ? 'false' : 'mixed';
+      return makeChip(item, pressed, `${shown}/${added.length}`, `all:${item.key}`, () => {
+        for (const device of added) {
+          setShown(device.thingName, item.key, shown !== added.length);
+        }
+        changed();
+      });
+    })));
+    return row;
+  }
+
+  function renderDevice(device) {
+    const supported = SUPPORTED_DEVICE_TYPES.includes(device.deviceType);
+    const added = supported && !ignored.has(device.thingName);
+    const name = device.name || t('unnamed');
+    const type = I18N.en['type' + device.deviceType]
+      ? t('type' + device.deviceType)
+      : t('typeUnknown', { n: device.deviceType });
+
+    const row = el('div', added ? 'jhp-dev' : 'jhp-dev is-off');
+    const head = el('div', 'jhp-dev-head');
+    const main = el('div', 'jhp-dev-main');
+    main.appendChild(el('div', 'jhp-dev-name', name));
+    const meta = el('div', 'jhp-dev-meta', `${type}${supported ? '' : ` · ${t('unsupported')}`} · `);
+    meta.appendChild(el('span', 'jhp-mono', device.thingName));
+    main.appendChild(meta);
+    head.appendChild(main);
+
+    if (supported) {
+      const sw = el('label', 'jhp-sw');
+      sw.title = t('addToHomeKit', { name: name });
+      const input = el('input');
+      input.type = 'checkbox';
+      input.checked = added;
+      input.setAttribute('aria-label', t('addToHomeKit', { name: name }));
+      input.dataset.focus = `sw:${device.thingName}`;
+      input.addEventListener('change', () => {
+        if (input.checked) {
+          ignored.delete(device.thingName);
+        } else {
+          ignored.add(device.thingName);
+        }
+        changed();
+      });
+      sw.appendChild(input);
+      sw.appendChild(el('span', 'jhp-track'));
+      head.appendChild(sw);
+    }
+    row.appendChild(head);
+
+    if (added) {
+      row.appendChild(makeChips(t('chipsAria', { name: name }), SHOW_ITEMS.map((item) => {
+        const shown = isShown(device.thingName, item.key);
+        return makeChip(item, String(shown), '', `chip:${device.thingName}:${item.key}`, () => {
+          setShown(device.thingName, item.key, !shown);
+          changed();
+        });
+      })));
+    } else if (supported) {
+      row.appendChild(el('div', 'jhp-dev-skip', t('notAdded')));
+    }
+    return row;
+  }
+
+  function renderDevices() {
+    const focusKey = document.activeElement && document.activeElement.dataset
+      ? document.activeElement.dataset.focus
+      : undefined;
+
+    listEl.innerHTML = '';
+    const added = devices.filter((d) => SUPPORTED_DEVICE_TYPES.includes(d.deviceType) && !ignored.has(d.thingName));
+    if (added.length >= 2) {
+      listEl.appendChild(renderAllRow(added));
+    }
+    for (const device of devices) {
+      listEl.appendChild(renderDevice(device));
+    }
+    listEl.hidden = devices.length === 0;
+
+    if (focusKey) {
+      const target = Array.from(listEl.querySelectorAll('[data-focus]')).find((node) => node.dataset.focus === focusKey);
+      if (target) {
+        target.focus();
+      }
+    }
+  }
+
+  function changed() {
+    sync();
+    renderDevices();
+    setStatus(t('unsaved'));
   }
 
   async function loadDevices() {
     const email = emailInput.value.trim();
 
     if (!email) {
-      setStatus('請先在上方填寫 Email 與密碼，再按「重新整理裝置清單」。');
+      setStatus(t('needEmail'));
       return;
     }
 
     homebridge.showSpinner();
-    setStatus('載入中…');
+    setStatus(t('loading'));
 
     try {
       const resp = await homebridge.request('/devices', {
@@ -364,12 +595,19 @@
         password: passwordInput.value,
       });
 
-      renderDevices(resp.devices);
-      setStatus(`共 ${resp.devices.length} 台裝置`
-        + (resp.usedCachedToken ? '（使用已記住的登入 Token）' : '（已重新登入並記住 Token）'));
+      devices = resp.devices;
+      renderDevices();
+      setStatus(devices.length === 0
+        ? t('noDevices')
+        : t('deviceCount', { n: devices.length }) + t(resp.usedCachedToken ? 'tokenCached' : 'tokenFresh'));
     } catch (e) {
-      setStatus('載入裝置清單失敗。');
-      homebridge.toast.error((e && e.message) || String(e), '載入裝置失敗');
+      // The server sends a code to translate; its English message is the fallback.
+      const code = e && e.error && e.error.code;
+      const message = code && I18N.en['err_' + code]
+        ? t('err_' + code, { detail: e.error.detail || '' })
+        : (e && e.message) || String(e);
+      setStatus(t('loadFailed'));
+      homebridge.toast.error(message, t('loadFailedTitle'));
     } finally {
       homebridge.hideSpinner();
     }
@@ -387,28 +625,31 @@
   nameInput.value = typeof config.name === 'string' && config.name !== '' ? config.name : DEFAULT_NAME;
   autoCleanInput.checked = config.autoCleanWhenPowerOff === true;
   debugInput.checked = config.debugMode === true;
-  for (const input of showInputs) {
-    input.checked = config[input.dataset.show] !== false;
+  for (const item of SHOW_ITEMS) {
+    showDefaults[item.key] = config[item.key] !== false;
   }
-  updateAutoCleanAvailability();
   for (const thingName of config.ignoredDevices || []) {
     if (typeof thingName === 'string' && thingName !== '') {
       ignored.add(thingName);
+    }
+  }
+  for (const entry of Array.isArray(config.devices) ? config.devices : []) {
+    if (entry && typeof entry.thingName === 'string' && entry.thingName !== '') {
+      deviceSettings.set(entry.thingName, Object.assign({}, entry));
     }
   }
 
   for (const input of [emailInput, passwordInput, nameInput]) {
     input.addEventListener('input', sync);
   }
-  for (const input of [autoCleanInput, debugInput, ...showInputs]) {
+  for (const input of [autoCleanInput, debugInput]) {
     input.addEventListener('change', sync);
   }
-  frostWashInput.addEventListener('change', updateAutoCleanAvailability);
 
   passwordToggle.addEventListener('click', () => {
     const show = passwordInput.type === 'password';
     passwordInput.type = show ? 'text' : 'password';
-    passwordToggle.textContent = show ? '隱藏' : '顯示';
+    passwordToggle.textContent = t(show ? 'hidePassword' : 'showPassword');
     passwordToggle.setAttribute('aria-pressed', String(show));
   });
 

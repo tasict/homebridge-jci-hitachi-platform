@@ -44,21 +44,48 @@
       },
       "showFrostWash": {
         "title": "Show Frost Wash (凍結洗淨) in Home",
-        "description": "Expose the 凍結洗淨通知 sensor and the 凍結洗淨 / 自動凍結洗淨 switches. When off, they are removed from HomeKit and the automatic frost wash does not run.",
+        "description": "Expose the 凍結洗淨通知 sensor and the 凍結洗淨 / 自動凍結洗淨 switches. When off, they are removed from HomeKit and the automatic frost wash does not run. Default for devices without their own setting in Per-device Settings.",
         "type": "boolean",
         "default": true
       },
       "showHumiditySensor": {
         "title": "Show Humidity Sensor in Home",
-        "description": "Expose the indoor humidity reported by each air conditioner.",
+        "description": "Expose the indoor humidity reported by each air conditioner. Default for devices without their own setting in Per-device Settings.",
         "type": "boolean",
         "default": true
       },
       "showAirQualitySensor": {
         "title": "Show Air Quality Sensor in Home",
-        "description": "Expose the air quality level and PM2.5 density reported by each air conditioner.",
+        "description": "Expose the air quality level and PM2.5 density reported by each air conditioner. Default for devices without their own setting in Per-device Settings.",
         "type": "boolean",
         "default": true
+      },
+      "devices": {
+        "title": "Per-device Settings",
+        "description": "Overrides of the show options for individual devices, by ThingName. Managed via the device list in the plugin settings UI.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "thingName": {
+              "title": "ThingName",
+              "type": "string",
+              "required": true
+            },
+            "showFrostWash": {
+              "title": "Show Frost Wash (凍結洗淨) in Home",
+              "type": "boolean"
+            },
+            "showHumiditySensor": {
+              "title": "Show Humidity Sensor in Home",
+              "type": "boolean"
+            },
+            "showAirQualitySensor": {
+              "title": "Show Air Quality Sensor in Home",
+              "type": "boolean"
+            }
+          }
+        }
       },
       "debugMode": {
         "title": "Debug Mode",

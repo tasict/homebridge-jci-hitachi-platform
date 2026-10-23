@@ -9,6 +9,8 @@ const { HomebridgePluginUiServer, RequestError } = require('@homebridge/plugin-u
 const { JciHitachiAWSCognitoConnection, GetAllDevice } = require('../dist/jci-hitachi-connections');
 const JciHitachiPlatformLogger = require('../dist/logger').default;
 
+// Errors carry a `code` that the settings page translates into the Homebridge UI
+// language; the English message is only a fallback.
 class JciHitachiUiServer extends HomebridgePluginUiServer {
 
     constructor() {
@@ -56,7 +58,7 @@ class JciHitachiUiServer extends HomebridgePluginUiServer {
         const password = (payload && payload.password) || '';
 
         if (!email) {
-            throw new RequestError('請先填寫 Email', { status: 400 });
+            throw new RequestError('Enter your email first.', { status: 400, code: 'emailRequired' });
         }
 
         let tokens;
@@ -76,18 +78,18 @@ class JciHitachiUiServer extends HomebridgePluginUiServer {
         // 2. Fall back to a password login.
         if (!tokens) {
             if (!password) {
-                throw new RequestError('登入 Token 已失效，請填寫密碼後再重新整理', { status: 401 });
+                throw new RequestError('The saved login has expired. Enter your password and reload the list.', { status: 401, code: 'tokenExpired' });
             }
             try {
                 tokens = await (new JciHitachiAWSCognitoConnection(email, password, undefined, this.log)).login(false);
             } catch (e) {
                 const detail = (e && e.response && e.response.data && e.response.data.message) || (e && e.message) || String(e);
-                throw new RequestError(`登入失敗：${detail}`, { status: 401 });
+                throw new RequestError(`Sign-in failed: ${detail}`, { status: 401, code: 'loginFailed', detail: detail });
             }
         }
 
         if (!tokens) {
-            throw new RequestError('登入失敗，請確認 Email 與密碼', { status: 401 });
+            throw new RequestError('Sign-in failed. Check your email and password.', { status: 401, code: 'loginRejected' });
         }
 
         this.saveCachedTokens(email, tokens);
@@ -96,7 +98,8 @@ class JciHitachiUiServer extends HomebridgePluginUiServer {
         try {
             thingDict = await (new GetAllDevice(tokens, this.log)).get_data();
         } catch (e) {
-            throw new RequestError(`無法取得裝置清單：${(e && e.message) || String(e)}`, { status: 502 });
+            const detail = (e && e.message) || String(e);
+            throw new RequestError(`Could not load the device list: ${detail}`, { status: 502, code: 'deviceListFailed', detail: detail });
         }
 
         const things = thingDict.getAllThings();

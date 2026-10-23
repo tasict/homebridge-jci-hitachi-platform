@@ -1,7 +1,7 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback, CharacteristicEventTypes } from 'homebridge';
 import JciHitachiPlatform from '../platform';
 import { AUTO_CLEAN_DELAY, DEVICE_STATUS_REFRESH_INTERVAL } from '../settings';
-import { JciHitachiAccessoryContext, JciHitachiAccessory} from '../types';
+import { JciHitachiAccessoryContext, JciHitachiAccessory, ShowOption } from '../types';
 import { AWSThings } from '../jci-hitachi-models';
 
 enum ClimateCommandType {
@@ -162,11 +162,10 @@ export default class ClimateAccessory extends JciHitachiAccessory{
 
     // Optional services (issue #12). Turning one off removes it from the cached
     // accessory, so it disappears from the Home app on the next restart.
-    const config = this.platform.platformConfig;
-    const showFrostWash = config.showFrostWash !== false;
+    const showFrostWash = this.isShown('showFrostWash');
 
     /////
-    if (config.showHumiditySensor !== false) {
+    if (this.isShown('showHumiditySensor')) {
       this.services['HumiditySensor'] = this.accessory.getService(this.platform.Service.HumiditySensor)
       || this.accessory.addService(this.platform.Service.HumiditySensor);
 
@@ -178,7 +177,7 @@ export default class ClimateAccessory extends JciHitachiAccessory{
 
 
     /////
-    if (config.showAirQualitySensor !== false) {
+    if (this.isShown('showAirQualitySensor')) {
       this.services['AirQualitySensor'] = this.accessory.getService(this.platform.Service.AirQualitySensor)
       || this.accessory.addService(this.platform.Service.AirQualitySensor);
 
@@ -369,10 +368,17 @@ export default class ClimateAccessory extends JciHitachiAccessory{
 
   private get autoCleanEnabled(): boolean {
     // With the frost wash services hidden there is no switch to turn it off.
-    if (this.platform.platformConfig.showFrostWash === false) {
+    if (!this.isShown('showFrostWash')) {
       return false;
     }
     return this.accessory.context.autoClean ?? !!this.platform.platformConfig.autoCleanWhenPowerOff;
+  }
+
+  // This device's entry in `devices` wins over the top-level default; unset means shown.
+  private isShown(option: ShowOption): boolean {
+    const config = this.platform.platformConfig;
+    const device = config.devices?.find(d => d.thingName === this.accessory.context.device.ThingName);
+    return (device?.[option] ?? config[option]) !== false;
   }
 
   // Drops a service restored from the accessory cache once its option is turned off.
