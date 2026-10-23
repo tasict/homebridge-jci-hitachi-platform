@@ -1,5 +1,4 @@
 import { Logger } from 'homebridge';
-import { Logger as TsLogger, ILogObj } from "tslog";
 
 
 /**
@@ -7,7 +6,8 @@ import { Logger as TsLogger, ILogObj } from "tslog";
  */
 export default class JciHitachiPlatformLogger {
 
-  private tsLogger: TsLogger<ILogObj> = new TsLogger();
+  // Used when there is no Homebridge logger, e.g. standalone runs.
+  private fallbackLogger = console;
 
   constructor(
     private readonly logger: Logger|undefined = undefined,
@@ -23,7 +23,7 @@ export default class JciHitachiPlatformLogger {
         if(this.logger !== undefined)
           this.logger.debug(messages[i]);
         else
-          this.tsLogger.debug(messages[i]);
+          this.fallbackLogger.debug(messages[i]);
         
 
       }
@@ -36,7 +36,7 @@ export default class JciHitachiPlatformLogger {
       if(this.logger !== undefined)
         this.logger.info(messages[i]);
       else
-        this.tsLogger.info(messages[i]);
+        this.fallbackLogger.info(messages[i]);
     }
   }
 
@@ -46,7 +46,7 @@ export default class JciHitachiPlatformLogger {
       if(this.logger !== undefined)
         this.logger.warn(messages[i]);
       else
-        this.tsLogger.warn(messages[i]);
+        this.fallbackLogger.warn(messages[i]);
     }
   }
 
@@ -56,7 +56,7 @@ export default class JciHitachiPlatformLogger {
       if(this.logger !== undefined)
         this.logger.error(messages[i]);
       else
-        this.tsLogger.error(messages[i]);
+        this.fallbackLogger.error(messages[i]);
     }
   }
 }

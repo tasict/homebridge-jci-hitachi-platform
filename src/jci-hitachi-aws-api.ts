@@ -2,7 +2,6 @@ import JciHitachiPlatformLogger from './logger';
 import axios from 'axios';
 import { mqtt5, auth, iot } from 'aws-iot-device-sdk-v2';
 import { once } from 'events';
-import { toUtf8 } from '@aws-sdk/util-utf8-browser';
 import { AWS_MQTT_ENDPOINT, AWS_REGION, QOS } from './jci-hitachi-constants';
 import {
     JciHitachiAWSCognitoConnection,
@@ -362,7 +361,7 @@ export default class JciHitachiAWSAPI {
             const thingName = topic_parts[1];
             const actionName = topic_parts[2];
             const actionType = topic_parts[3];
-            const payloadContent = payload ? JSON.parse(toUtf8(payload as Buffer)) : {};
+            const payloadContent = payload ? JSON.parse(new TextDecoder().decode(payload)) : {};
 
             this.log.debug(`Received: ${topic} ${JSON.stringify(payloadContent)}`);
 

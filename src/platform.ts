@@ -231,7 +231,7 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
    * This function is invoked when Homebridge restores cached accessories from disk at startup.
    * It should be used to set up event handlers for characteristics and update respective values.
    */
-  configureAccessory(accessory: PlatformAccessory<JciHitachiAccessoryContext>) {
+  configureAccessory(accessory: PlatformAccessory) {
     this.log.info(`Loading accessory '${accessory.displayName}' from cache.`);
 
     /**
@@ -241,7 +241,7 @@ export default class JciHitachiPlatform implements DynamicPlatformPlugin {
      * But we need to add the restored accessory to the
      * accessories cache so we can access it during that process.
      */
-    this.accessories.push(accessory);
+    this.accessories.push(accessory as PlatformAccessory<JciHitachiAccessoryContext>);
   }
 
   isSupportedDevice(deviceType:number): boolean {
