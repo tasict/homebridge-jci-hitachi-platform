@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-23
+
+### Added
+
+- The frost wash, humidity and air quality options can now be set per device: each air conditioner in the settings page's device list has its own tags, plus an *All air conditioners* row that changes every unit at once. They are stored in a new `devices` list; the top-level `show*` options remain the default for devices without their own setting, so 1.6.0 configurations keep working.
+- The settings page is available in English, Traditional Chinese and Japanese and follows the language of the Homebridge UI.
+
+### Changed
+
+- The device list and the 在「家庭」App 顯示 card are merged into one Devices card: a switch per device replaces the 略過 (skip) checkbox, with that device's tags below it.
+
 ## [1.6.0] - 2026-10-23
 
 ### Added
@@ -178,7 +189,8 @@ First tagged release.
 
 - Connection issue from the initial version.
 
-[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.3.1...v1.4.0
