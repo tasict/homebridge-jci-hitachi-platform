@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-23
+
+### Fixed
+
+- The settings page treated every air conditioner as unsupported, so 1.7.0 showed no HomeKit switch or frost wash / humidity / air quality tags for any unit (and older versions labeled air conditioners 外掛尚未支援). The cloud's device list reports the device type as text, which the page compared against a number; the type is now read as a number everywhere.
+
 ## [1.7.0] - 2026-10-23
 
 ### Added
@@ -189,7 +195,8 @@ First tagged release.
 
 - Connection issue from the initial version.
 
-[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/tasict/homebridge-jci-hitachi-platform/compare/v1.4.0...v1.5.0
