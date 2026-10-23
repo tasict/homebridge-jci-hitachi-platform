@@ -8,7 +8,8 @@ export interface NotifyCallback {
 export interface AWSThingInfo {
     ThingName: string;
     CustomDeviceName: string;
-    DeviceType: number;
+    // GetAllDevice sends this as a string ("1"), unlike the MQTT payloads.
+    DeviceType: number | string;
 }
 
 // Live device state pushed over MQTT on the `status` topic. All fields are optional
@@ -146,7 +147,7 @@ export class AWSThings {
     }
 
     public get DeviceType(): number {
-        return this.thingObject.DeviceType;
+        return Number(this.thingObject.DeviceType);
     }
 
     public get SwitchOn(): number {
